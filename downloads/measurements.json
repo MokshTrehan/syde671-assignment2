@@ -1,0 +1,1318 @@
+{
+  "filters": {
+    "sections": [
+      {
+        "id": "part11",
+        "title": "1.1 \u00b7 Convolutions from scratch",
+        "paragraphs": [
+          "Both implementations compute true convolution: flip the kernel in both dimensions, zero-pad the image, and accumulate products. The four-loop version iterates over image rows, image columns, kernel rows, and kernel columns. The two-loop version keeps the two kernel loops and multiplies a whole shifted image slice at once. No convolution routine, FFT, window-view helper, or image-processing library is used inside either implementation.",
+          "For a kernel of height Kh and width Kw, padding before each axis is floor(K/2) and padding after it is floor((K\u22121)/2). This asymmetry for even kernels matches SciPy\u2019s \u201csame\u201d crop convention. Testing non-symmetric odd and even kernels is necessary: a symmetric Gaussian alone would not catch an accidental correlation or a one-pixel offset.",
+          "The grayscale selfie is 384 \u00d7 512 pixels; luminance uses 0.299R + 0.587G + 0.114B on RGB values in [0,1]. The 9 \u00d7 9 average removes fine texture. D\u2093 and D\u1d67 emphasize changes across columns and rows respectively; the signed display has one common symmetric color scale. Zero extension visibly darkens a smoothed outer rim and can introduce false derivatives at the frame.",
+          "For a fixed 96 \u00d7 96 selfie crop/resize, the table reports the median of three timed calls after one warm-up. Every method uses float64, zero extension, and \u201csame\u201d output. Maximum error across all comparisons is 8.88e-16. These are measurements on this computer, not universal speed claims. Both manual methods do O(HWKhKw) arithmetic; vectorizing the image operations removes Python\u2019s per-pixel overhead.",
+          "The boundary test uses an all-ones 25 \u00d7 25 image and a normalized 9 \u00d7 9 box. Zero fill produces 25/81 at a corner and 5/9 along an edge; symmetric and periodic extension preserve one everywhere. \u201cSame\u201d describes output size, not how pixels beyond the image are supplied."
+        ],
+        "figures": [
+          {
+            "path": "images/filters_selfie.jpg",
+            "caption": "Self portrait, 9 \u00d7 9 box-filtered portrait, and signed horizontal/vertical derivatives. Red is positive and blue is negative; shared derivative scale clips only the strongest responses for visibility.",
+            "alt": "Self portrait, 9 \u00d7 9 box-filtered portrait, and signed horizontal/vertical derivatives. Red is positive and blue is negative; shared derivative scale clips only the strongest responses for visibility."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Runtime and correctness (96 \u00d7 96 float64 input)",
+            "columns": [
+              "Kernel",
+              "Method",
+              "Median ms",
+              "Max |error|"
+            ],
+            "rows": [
+              [
+                "3\u00d75 asymmetric",
+                "Four loops",
+                43.908,
+                "5.55e-16"
+              ],
+              [
+                "3\u00d75 asymmetric",
+                "Two loops",
+                0.123,
+                "5.55e-16"
+              ],
+              [
+                "3\u00d75 asymmetric",
+                "SciPy convolve2d",
+                0.209,
+                "0.00e+00"
+              ],
+              [
+                "2\u00d74 asymmetric (even)",
+                "Four loops",
+                23.082,
+                "8.88e-16"
+              ],
+              [
+                "2\u00d74 asymmetric (even)",
+                "Two loops",
+                0.08,
+                "8.88e-16"
+              ],
+              [
+                "2\u00d74 asymmetric (even)",
+                "SciPy convolve2d",
+                0.138,
+                "0.00e+00"
+              ],
+              [
+                "9\u00d79 box",
+                "Four loops",
+                209.111,
+                "7.77e-16"
+              ],
+              [
+                "9\u00d79 box",
+                "Two loops",
+                0.609,
+                "7.77e-16"
+              ],
+              [
+                "9\u00d79 box",
+                "SciPy convolve2d",
+                0.9,
+                "0.00e+00"
+              ],
+              [
+                "1\u00d73 derivative",
+                "Four loops",
+                9.022,
+                "0.00e+00"
+              ],
+              [
+                "1\u00d73 derivative",
+                "Two loops",
+                0.047,
+                "0.00e+00"
+              ],
+              [
+                "1\u00d73 derivative",
+                "SciPy convolve2d",
+                0.095,
+                "0.00e+00"
+              ]
+            ]
+          },
+          {
+            "title": "Boundary behavior of a constant image",
+            "columns": [
+              "SciPy boundary",
+              "Corner",
+              "Top edge midpoint",
+              "Center"
+            ],
+            "rows": [
+              [
+                "fill",
+                0.308642,
+                0.555556,
+                1.0
+              ],
+              [
+                "symm",
+                1.0,
+                1.0,
+                1.0
+              ],
+              [
+                "wrap",
+                1.0,
+                1.0,
+                1.0
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Input validation, kernel flip, and exact padding",
+            "text": "def _convolution_inputs(image, kernel):\n    image = np.asarray(image, dtype=np.float64)\n    kernel = np.asarray(kernel, dtype=np.float64)\n    if image.ndim != 2 or kernel.ndim != 2:\n        raise ValueError(\"image and kernel must both be two dimensional\")\n    if not image.size or not kernel.size:\n        raise ValueError(\"image and kernel must be nonempty\")\n    kh, kw = kernel.shape\n    # Before = ceil((K-1)/2); after = floor((K-1)/2).\n    padded = np.pad(image, ((kh // 2, (kh - 1) // 2),\n                            (kw // 2, (kw - 1) // 2)), mode='constant')\n    return image, kernel[::-1, ::-1], padded\n"
+          },
+          {
+            "title": "Four-loop convolution",
+            "text": "def convolve_four_loops(image, kernel):\n    \"\"\"True 2-D convolution: two spatial loops and two kernel loops.\"\"\"\n    image, flipped, padded = _convolution_inputs(image, kernel)\n    height, width = image.shape\n    kh, kw = flipped.shape\n    out = np.zeros_like(image)\n    for y in range(height):\n        for x in range(width):\n            for ky in range(kh):\n                for kx in range(kw):\n                    out[y, x] += flipped[ky, kx] * padded[y + ky, x + kx]\n    return out\n"
+          },
+          {
+            "title": "Two-loop convolution",
+            "text": "def convolve_two_loops(image, kernel):\n    \"\"\"True 2-D convolution: kernel loops; spatial products are vectorized.\"\"\"\n    image, flipped, padded = _convolution_inputs(image, kernel)\n    height, width = image.shape\n    kh, kw = flipped.shape\n    out = np.zeros_like(image)\n    for ky in range(kh):\n        for kx in range(kw):\n            out += flipped[ky, kx] * padded[ky:ky + height, kx:kx + width]\n    return out\n"
+          }
+        ]
+      },
+      {
+        "id": "part12",
+        "title": "1.2 \u00b7 Finite difference operator",
+        "paragraphs": [
+          "The horizontal and vertical responses are gx = I \u2217 [1,0,\u22121] and gy = I \u2217 [1,0,\u22121]\u1d40. True convolution flips the stencil, so a left-to-right brightening gives positive gx. Gradient magnitude is \u221a(gx\u00b2 + gy\u00b2); it combines both directions into an unsigned edge-strength map.",
+          "The supplied public cameraman rendering has a thin white border. I crop it to (1, 7, 535, 541) (left, top, right, bottom; right/bottom excluded), then resize the remaining square to 256 \u00d7 256 with Lanczos. All calculations use floating intensities in [0,1], with no per-image normalization before thresholding.",
+          "I compare thresholds 0.08, 0.16, and 0.24, which retain 23.7%, 12.8%, and 9.0% of the evaluated interior. I choose 0.16: it retains the person, camera, and tripod more clearly than 0.24 while rejecting much of the ground texture retained by 0.08. This is a visual tradeoff, not an accuracy score against annotated ground truth.",
+          "The edge predicate is magnitude > T. A seven-pixel frame is excluded from binary maps and edge-fraction measurements throughout Part 1, preventing zero-padding artifacts from being mistaken for scene edges and matching the largest Gaussian derivative support used below. The signed derivative and magnitude images still show their unmasked responses."
+        ],
+        "figures": [
+          {
+            "path": "images/filters_finite_difference.jpg",
+            "caption": "Cameraman finite differences and gradient magnitude. Signed derivatives share [\u22120.65,0.65]; magnitude is displayed over [0,0.65].",
+            "alt": "Cameraman finite differences and gradient magnitude. Signed derivatives share [\u22120.65,0.65]; magnitude is displayed over [0,0.65]."
+          },
+          {
+            "path": "images/filters_thresholds.jpg",
+            "caption": "Threshold sweep on the original finite-difference magnitude. The middle threshold balances contour continuity and background texture; black outer frame is excluded from evaluation.",
+            "alt": "Threshold sweep on the original finite-difference magnitude. The middle threshold balances contour continuity and background texture; black outer frame is excluded from evaluation."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Threshold sensitivity",
+            "columns": [
+              "Threshold",
+              "Interior edge fraction",
+              "Selection"
+            ],
+            "rows": [
+              [
+                0.08,
+                "23.68%",
+                "Comparison"
+              ],
+              [
+                0.16,
+                "12.81%",
+                "Selected"
+              ],
+              [
+                0.24,
+                "8.99%",
+                "Comparison"
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Gradient and edge magnitude",
+            "text": "gx = convolve_two_loops(image, DX)\ngy = convolve_two_loops(image, DY)\nmagnitude = np.sqrt(gx * gx + gy * gy)\nedges = magnitude > threshold"
+          }
+        ]
+      },
+      {
+        "id": "part13",
+        "title": "1.3 \u00b7 Derivative of Gaussian",
+        "paragraphs": [
+          "I construct a 13 \u00d7 13 Gaussian at \u03c3 = 2 pixels as the outer product of cv2.getGaussianKernel(13,2) with itself. First blur with G, then differentiate with D\u2093/D\u1d67. Equivalently, form Kx = G \u2217 D\u2093 and Ky = G \u2217 D\u1d67 once, then use a single convolution per derivative. These are finite-difference derivatives of the sampled Gaussian; their supports are 13 \u00d7 15 and 15 \u00d7 13 because full kernel convolution preserves the extra two samples.",
+          "Convolution associativity gives I \u2217 (G \u2217 D) = (I \u2217 G) \u2217 D on the same zero-extended infinite image. In a finite implementation, calling \u201csame\u201d after BOTH stages throws away the blurred halo and breaks equality at the frame: the maximum error here is 0.307, although the evaluated interior agrees to 8.95e-16. Retaining the full Gaussian result, applying the derivative, and cropping only once restores agreement over the entire image to 8.95e-16. The discrepancy panel makes this boundary issue explicit.",
+          "Compared with raw finite differences, DoG removes fine grass texture and yields smoother, wider contours. It can merge nearby edges and remove weak detail; Gaussian smoothing is therefore a noise/detail tradeoff. I use T = 0.08 for DoG and T = 0.16 for raw gradients because smoothing lowers response amplitudes. These are separately chosen operating points, not proof that one detector has higher accuracy.",
+          "To test noise sensitivity, I add seeded Gaussian noise with \u03c3 = 0.08 and clip to [0,1]. I compare each noisy gradient with its own clean counterpart, avoiding the mistake of calling intentional smoothing a noise error. Interior vector-gradient residual RMS falls from 0.15226 for finite differences to 0.01030 for DoG (14.8\u00d7 lower). This measures stability for this image/noise realization, not recovery of lost detail."
+        ],
+        "figures": [
+          {
+            "path": "images/filters_dog_kernels.jpg",
+            "caption": "Gaussian and its sampled derivative kernels. A common signed scale is used for the x/y derivative kernels; the Gaussian uses its own nonnegative scale.",
+            "alt": "Gaussian and its sampled derivative kernels. A common signed scale is used for the x/y derivative kernels; the Gaussian uses its own nonnegative scale."
+          },
+          {
+            "path": "images/filters_smoothed_derivatives.jpg",
+            "caption": "Repeating the finite-difference procedure after Gaussian smoothing: signed horizontal and vertical derivatives share the scale [\u22120.35,0.35], followed by their magnitude on [0,0.35]. These panels use sequential same-sized convolutions with zero padding; the boundary-equivalence comparison below explains the difference from a single DoG convolution.",
+            "alt": "Repeating the finite-difference procedure after Gaussian smoothing: signed horizontal and vertical derivatives share the scale [\u22120.35,0.35], followed by their magnitude on [0,0.35]. These panels use sequential same-sized convolutions with zero padding; the boundary-equivalence comparison below explains the difference from a single DoG convolution."
+          },
+          {
+            "path": "images/filters_dog_comparison.jpg",
+            "caption": "Gaussian derivative results, raw/DoG threshold maps, and the difference between finite implementations. Preserving the intermediate halo is necessary for global equality.",
+            "alt": "Gaussian derivative results, raw/DoG threshold maps, and the difference between finite implementations. Preserving the intermediate halo is necessary for global equality."
+          },
+          {
+            "path": "images/filters_noise.jpg",
+            "caption": "Controlled noisy cameraman experiment. Gaussian derivatives reject much of the high-frequency noise that triggers raw finite differences.",
+            "alt": "Controlled noisy cameraman experiment. Gaussian derivatives reject much of the high-frequency noise that triggers raw finite differences."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Convolution equivalence and noise measurements",
+            "columns": [
+              "Measurement",
+              "Value"
+            ],
+            "rows": [
+              [
+                "Same/same vs single DoG \u00b7 max error",
+                "0.307441"
+              ],
+              [
+                "Interior same/same vs single DoG \u00b7 max error",
+                "8.95e-16"
+              ],
+              [
+                "Halo-preserved sequential vs single DoG \u00b7 max error",
+                "8.95e-16"
+              ],
+              [
+                "Raw gradient noise RMS",
+                "0.152265"
+              ],
+              [
+                "DoG gradient noise RMS",
+                "0.010304"
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Build Gaussian derivative kernels",
+            "text": "g1 = cv2.getGaussianKernel(13, 2.0)\nG = g1 @ g1.T\nKx = convolve2d(G, DX, mode=\"full\")\nKy = convolve2d(G, DY, mode=\"full\")\ngx = convolve2d(image, Kx, mode=\"same\", boundary=\"fill\")\ngy = convolve2d(image, Ky, mode=\"same\", boundary=\"fill\")"
+          }
+        ]
+      },
+      {
+        "id": "orientation",
+        "title": "Mandatory extension \u00b7 Gradient orientations",
+        "paragraphs": [
+          "The orientation implementation calls no arctangent, atan2, or angle routine. It takes r = min(|gy|,|gx|)/max(|gy|,|gx|), then range-reduces r above \u221a2\u22121 using atan(r) = \u03c0/4 + atan((r\u22121)/(r+1)). The reduced argument has magnitude at most \u221a2\u22121, so 18 terms of z \u2212 z\u00b3/3 + z\u2075/5 \u2212 \u2026 converge accurately. Coordinate swaps and component signs restore all four quadrants; a zero gradient is assigned angle zero and displayed black.",
+          "Hue is \u03b8 mod 2\u03c0 divided by 2\u03c0; saturation is one. Value is min(magnitude / p99.5, 1)^0.7, with p99.5 = 0.2386, so stronger gradients appear brighter and faint background responses remain subdued. The colors represent directed intensity change, not the tangent direction of the edge. Since image rows increase downward, 90\u00b0 points down. NumPy atan2 is used only as an independent validation reference: maximum angular error on this figure is 4.44e-16 radians."
+        ],
+        "figures": [
+          {
+            "path": "images/filters_orientation.jpg",
+            "caption": "HSV orientation visualization computed without built-in angle functions. Direction follows image coordinates; the seven-pixel border is excluded.",
+            "alt": "HSV orientation visualization computed without built-in angle functions. Direction follows image coordinates; the seven-pixel border is excluded."
+          }
+        ],
+        "tables": [],
+        "code": [
+          {
+            "title": "Arithmetic-only orientation implementation",
+            "text": "def orientation_without_angles(gx, gy, terms=18):\n    \"\"\"Quadrant-correct atan2 equivalent using arithmetic and a Taylor series.\n\n    No arctan/arctan2/angle function is used. Range reduction first replaces\n    the ratio by min(|y|,|x|)/max(|y|,|x|), then uses\n      atan(r) = pi/4 + atan((r-1)/(r+1)) for r > tan(pi/8).\n    This bounds the series argument by sqrt(2)-1, giving fast convergence.\n    At a zero gradient the angle is assigned zero (orientation is undefined).\n    Signed-zero distinctions on the negative x-axis are immaterial for hue.\n    \"\"\"\n    gx, gy = np.broadcast_arrays(np.asarray(gx, float), np.asarray(gy, float))\n    if not np.all(np.isfinite(gx)) or not np.all(np.isfinite(gy)):\n        raise ValueError('gradient components must be finite')\n    if terms < 1:\n        raise ValueError('terms must be positive')\n    ax, ay = np.abs(gx), np.abs(gy)\n    high, low = np.maximum(ax, ay), np.minimum(ax, ay)\n    ratio = np.divide(low, high, out=np.zeros_like(high), where=high != 0)\n    reduce = ratio > np.sqrt(2.0) - 1.0\n    z = np.where(reduce, (ratio - 1.0) / (ratio + 1.0), ratio)\n    # Horner evaluation of z - z^3/3 + z^5/5 - ... .\n    z2 = z * z\n    poly = np.zeros_like(z)\n    for n in range(terms - 1, -1, -1):\n        poly = ((-1.0) ** n) / (2 * n + 1) + z2 * poly\n    small_angle = z * poly + np.where(reduce, np.pi / 4, 0.0)\n    angle = np.where(ay > ax, np.pi / 2 - small_angle, small_angle)\n    angle = np.where(gx < 0, np.pi - angle, angle)\n    angle = np.where(gy < 0, -angle, angle)\n    return np.where(high == 0, 0.0, angle)\n"
+          }
+        ]
+      },
+      {
+        "id": "part21",
+        "title": "2.1 \u00b7 Image sharpening",
+        "paragraphs": [
+          "Let B = G \u2217 I be the low-pass image and H = I \u2212 B its high-frequency residual. Unsharp masking forms S = I + \u03b1H = (1 + \u03b1)I \u2212 \u03b1(G \u2217 I). Since I = \u03b4 \u2217 I and convolution is linear, one convolution suffices: S = [(1 + \u03b1)\u03b4 \u2212 \u03b1G] \u2217 I. The kernel has unit sum, so a constant image is preserved when the boundary extension also preserves constants.",
+          "I use a 13 \u00d7 13 Gaussian at \u03c3 = 2 pixels, symmetric boundaries to avoid dark zero-padded borders, and independent float64 RGB-channel processing. All computation keeps signed residuals and unclipped sharpened values until display/export. The figures include the Taj Mahal, an additional original street photograph, and \u03b1 = 0.5, 1, 2. Increasing \u03b1 strengthens existing edges and texture but also amplifies noise, halos, and values outside the display range.",
+          "The single-convolution expression agrees with I + \u03b1(I \u2212 G\u2217I) at \u03b1 = 1 to a maximum error of 1.78e-15 over these images. High-frequency residuals are displayed as 0.5 + 2H, where middle gray means zero; they are not independently normalized. The clipped-sample table counts RGB channel values outside [0,1] before clipping, exposing a cost hidden by an attractive display.",
+          "For the recovery experiment, I deliberately blur the original street image once, then sharpen that blurred image with the same Gaussian at each tested \u03b1. The best tested display result is \u03b1 = 2: clipped RGB MSE changes from 0.001660 after blur to 0.001099 after sharpening, and PSNR changes from 27.80 to 29.59 dB. The parameter was selected against this reference and is not a general optimum.",
+          "Resharpening makes blurred transitions steeper but does not restore all original detail. If the blur transfer is G(f), the blur-then-unsharp transfer is G(f)[1 + \u03b1 \u2212 \u03b1G(f)], which is generally not one. Frequencies reduced nearly to zero cannot be reconstructed by this finite boost, and clipping can discard additional information. The crop, residual map, and nonzero MSE support this limitation; perceptual crispness alone does not establish recovery."
+        ],
+        "figures": [
+          {
+            "path": "images/sharpen_taj_sweep.jpg",
+            "caption": "Taj Mahal: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1].",
+            "alt": "Taj Mahal: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1]."
+          },
+          {
+            "path": "images/sharpen_street_sweep.jpg",
+            "caption": "Original street photograph: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1].",
+            "alt": "Original street photograph: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1]."
+          },
+          {
+            "path": "images/sharpen_blur_recovery.jpg",
+            "caption": "Blur-and-resharpen experiment on the original street photograph. The lower row enlarges exactly the same fixed region from each output. \u03b1 = 2 is the best of the three tested settings by clipped RGB MSE against the original; it does not reproduce the source.",
+            "alt": "Blur-and-resharpen experiment on the original street photograph. The lower row enlarges exactly the same fixed region from each output. \u03b1 = 2 is the best of the three tested settings by clipped RGB MSE against the original; it does not reproduce the source."
+          },
+          {
+            "path": "images/sharpen_recovery_error.jpg",
+            "caption": "Left: horizontal frequency response of the actual discrete Gaussian and the blur-plus-unsharp pipeline. High frequencies that the Gaussian strongly attenuates remain attenuated. Right: residual error against the sharp reference, using the selected recovery setting.",
+            "alt": "Left: horizontal frequency response of the actual discrete Gaussian and the blur-plus-unsharp pipeline. High frequencies that the Gaussian strongly attenuates remain attenuated. Right: residual error against the sharp reference, using the selected recovery setting."
+          }
+        ],
+        "tables": [
+          {
+            "title": "RGB samples outside display range before clipping",
+            "columns": [
+              "Image",
+              "Alpha",
+              "Out-of-range samples"
+            ],
+            "rows": [
+              [
+                "Taj Mahal",
+                0.5,
+                "5.687%"
+              ],
+              [
+                "Taj Mahal",
+                1.0,
+                "9.075%"
+              ],
+              [
+                "Taj Mahal",
+                2.0,
+                "14.845%"
+              ],
+              [
+                "Original street photograph",
+                0.5,
+                "0.741%"
+              ],
+              [
+                "Original street photograph",
+                1.0,
+                "1.581%"
+              ],
+              [
+                "Original street photograph",
+                2.0,
+                "3.504%"
+              ]
+            ]
+          },
+          {
+            "title": "Recovery relative to sharp street reference (RGB in [0,1])",
+            "columns": [
+              "Stage",
+              "Alpha",
+              "Float MSE",
+              "Float PSNR dB",
+              "Clipped MSE",
+              "Clipped PSNR dB"
+            ],
+            "rows": [
+              [
+                "Original",
+                "\u2014",
+                "0",
+                "\u221e",
+                "0",
+                "\u221e"
+              ],
+              [
+                "Blurred",
+                "\u2014",
+                "0.001660",
+                "27.80",
+                "0.001660",
+                "27.80"
+              ],
+              [
+                "Resharpened",
+                0.5,
+                "0.001429",
+                "28.45",
+                "0.001429",
+                "28.45"
+              ],
+              [
+                "Resharpened",
+                1.0,
+                "0.001259",
+                "29.00",
+                "0.001259",
+                "29.00"
+              ],
+              [
+                "Resharpened",
+                2.0,
+                "0.001101",
+                "29.58",
+                "0.001099",
+                "29.59"
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Single-convolution sharpening kernel",
+            "text": "def unsharp_kernel(gaussian, alpha):\n    \"\"\"(1+alpha)*delta - alpha*G, for an odd, normalized Gaussian G.\"\"\"\n    gaussian = np.asarray(gaussian, float)\n    if gaussian.ndim != 2 or any(n % 2 == 0 for n in gaussian.shape):\n        raise ValueError('Gaussian must have odd dimensions')\n    if not np.isclose(gaussian.sum(), 1.0):\n        raise ValueError('Gaussian must sum to one')\n    kernel = -float(alpha) * gaussian.copy()\n    kernel[gaussian.shape[0] // 2, gaussian.shape[1] // 2] += 1 + float(alpha)\n    return kernel\n"
+          }
+        ]
+      }
+    ],
+    "measurements": {
+      "convolution_max_error": 8.881784197001252e-16,
+      "benchmark": [
+        [
+          "3\u00d75 asymmetric",
+          "Four loops",
+          43.908,
+          "5.55e-16"
+        ],
+        [
+          "3\u00d75 asymmetric",
+          "Two loops",
+          0.123,
+          "5.55e-16"
+        ],
+        [
+          "3\u00d75 asymmetric",
+          "SciPy convolve2d",
+          0.209,
+          "0.00e+00"
+        ],
+        [
+          "2\u00d74 asymmetric (even)",
+          "Four loops",
+          23.082,
+          "8.88e-16"
+        ],
+        [
+          "2\u00d74 asymmetric (even)",
+          "Two loops",
+          0.08,
+          "8.88e-16"
+        ],
+        [
+          "2\u00d74 asymmetric (even)",
+          "SciPy convolve2d",
+          0.138,
+          "0.00e+00"
+        ],
+        [
+          "9\u00d79 box",
+          "Four loops",
+          209.111,
+          "7.77e-16"
+        ],
+        [
+          "9\u00d79 box",
+          "Two loops",
+          0.609,
+          "7.77e-16"
+        ],
+        [
+          "9\u00d79 box",
+          "SciPy convolve2d",
+          0.9,
+          "0.00e+00"
+        ],
+        [
+          "1\u00d73 derivative",
+          "Four loops",
+          9.022,
+          "0.00e+00"
+        ],
+        [
+          "1\u00d73 derivative",
+          "Two loops",
+          0.047,
+          "0.00e+00"
+        ],
+        [
+          "1\u00d73 derivative",
+          "SciPy convolve2d",
+          0.095,
+          "0.00e+00"
+        ]
+      ],
+      "cameraman_crop": [
+        1,
+        7,
+        535,
+        541
+      ],
+      "camera_shape": [
+        256,
+        256
+      ],
+      "raw_threshold": 0.16,
+      "dog_threshold": 0.08,
+      "gaussian_size": 13,
+      "gaussian_sigma": 2.0,
+      "dog_halo_max_error": 8.947920529522868e-16,
+      "dog_naive_boundary_max_error": 0.3074409711544766,
+      "dog_interior_max_error": 8.947920529522868e-16,
+      "raw_noise_rms": 0.1522646483130142,
+      "dog_noise_rms": 0.010304303887251067,
+      "orientation_max_error_radians": 4.440892098500626e-16,
+      "sharpen_identity_max_error": 1.7763568394002505e-15,
+      "recovery_best_tested_alpha": 2.0,
+      "recovery_mse_blur": 0.0016602822635509542,
+      "recovery_mse_sharp": 0.0010986120085566754,
+      "recovery_psnr_blur": 27.79818071549289,
+      "recovery_psnr_sharp": 29.591556581624694,
+      "recovery_crop_xyxy": [
+        160,
+        144,
+        416,
+        336
+      ],
+      "sharpen_gaussian_size": 13,
+      "sharpen_gaussian_sigma": 2.0
+    },
+    "source_files": [
+      "src/filters.py",
+      "run_filters.py",
+      "tests/test_filters.py"
+    ],
+    "validation": {
+      "command": ".venv/bin/python -m unittest tests.test_filters -v",
+      "test_count": 7,
+      "note": "Independent regression tests cover non-symmetric/even kernels, true kernel flip, zero boundaries, halo associativity, all-quadrant orientation, and unsharp identity."
+    }
+  },
+  "frequencies": {
+    "sections": [
+      {
+        "id": "part22",
+        "title": "2.2 \u00b7 Hybrid images",
+        "paragraphs": [
+          "A hybrid adds a blurred image to the signed detail of a second aligned image: H = G_sigmaL * A + gain (B - G_sigmaH * B). The low-frequency subject should dominate from farther away; fine edges make the high-frequency subject visible nearby. Filtering is performed in floating-point RGB intensity (or replicated luminance), with separable normalized Gaussian kernels and reflected image boundaries.",
+          "Derek + Nutmeg is the supplied pair. Astronaut + portrait cat and Obama + tabby are two custom pairs made from downloadable, attributed photographs. Both custom portraits use eye centers to align with the cat eyes. Each input is transformed independently onto a 512 x 512 canvas by a two-point similarity transform. Manual landmarks, original pixel coordinates and complete 2 x 3 matrices are saved in results/frequencies.json; the editable choices are in frequencies_config.json.",
+          "The six-panel sweeps compare blur widths in output pixels. The selected facial settings (sigmaL = 10, sigmaH = 5) preserve the broad human face while retaining cat fur, whiskers and eye rims. SigmaH = 2 produces weak, mainly fine texture; sigmaH = 8 introduces more cat shading and makes the distance interpretation less clean. SigmaL = 18 weakens useful human identity. These are visual judgments for these crops, not a universal optimal cutoff.",
+          "The Gaussian response has no sharp frequency boundary. The table gives the continuous-Gaussian half-amplitude estimate sqrt(2 ln 2) / (2 pi sigma), in cycles per output pixel. For the high-pass response 1-G, the half-amplitude frequency has the same expression. All actual filters use spatial convolution; the FFT panels diagnose the result.",
+          "Earth + Moon is an additional limitation study. Aligning both circular limbs is geometrically easy, but the two subjects share the same silhouette and overlapping spatial structure. The output is better described as a textured planet than a clean categorical switch. Good landmark alignment alone cannot guarantee a strong perceptual hybrid.",
+          "No signed band is clipped before addition. Exported display images are clipped to [0,1] and quantized to 8 bits; the table reports the fraction of scalar channel values outside this interval before export. The signed-band visualization uses 0.5 + 2.5H, independently of the numerical synthesis."
+        ],
+        "figures": [
+          {
+            "path": "images/hybrid_derek_nutmeg_alignment.jpg",
+            "caption": "Derek + Nutmeg: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_components.jpg",
+            "caption": "Derek + Nutmeg: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_distance.jpg",
+            "caption": "Derek + Nutmeg: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_sweep.jpg",
+            "caption": "Derek + Nutmeg: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_alignment.jpg",
+            "caption": "Astronaut + portrait cat: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_components.jpg",
+            "caption": "Astronaut + portrait cat: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_distance.jpg",
+            "caption": "Astronaut + portrait cat: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_sweep.jpg",
+            "caption": "Astronaut + portrait cat: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
+          },
+          {
+            "path": "images/hybrid_obama_tabby_alignment.jpg",
+            "caption": "Obama + tabby: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
+          },
+          {
+            "path": "images/hybrid_obama_tabby_components.jpg",
+            "caption": "Obama + tabby: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
+          },
+          {
+            "path": "images/hybrid_obama_tabby_distance.jpg",
+            "caption": "Obama + tabby: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+          },
+          {
+            "path": "images/hybrid_obama_tabby_sweep.jpg",
+            "caption": "Obama + tabby: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
+          },
+          {
+            "path": "images/hybrid_earth_moon_alignment.jpg",
+            "caption": "Earth + Moon (limitation study): original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
+          },
+          {
+            "path": "images/hybrid_earth_moon_components.jpg",
+            "caption": "Earth + Moon (limitation study): low-pass sigma 12 px, high-pass sigma 6 px, detail gain 1.4. Signed high frequencies are contrast-amplified around midgray only in this display."
+          },
+          {
+            "path": "images/hybrid_earth_moon_distance.jpg",
+            "caption": "Earth + Moon (limitation study): the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+          },
+          {
+            "path": "images/hybrid_fourier_process.jpg",
+            "caption": "Full Fourier workflow for Astronaut + portrait cat. Each bottom panel shows log(1 + 1000000 |fftshift(fft2(luminance))| / N), with one common display maximum for all panels. Division by N compares inputs of different dimensions. No FFT window or mean subtraction is used. The low pass concentrates energy centrally; the high pass suppresses the center and retains outer frequencies. Original, aligned, filtered and final images are all shown."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Selected parameters and display clipping",
+            "columns": [
+              "Pair",
+              "sigma low (px)",
+              "sigma high (px)",
+              "gain",
+              "low f_0.5",
+              "high f_0.5",
+              "values clipped"
+            ],
+            "rows": [
+              [
+                "Derek + Nutmeg",
+                "10",
+                "5",
+                "1.0",
+                "0.0187",
+                "0.0375",
+                "0.93%"
+              ],
+              [
+                "Astronaut + portrait cat",
+                "10",
+                "5",
+                "1.0",
+                "0.0187",
+                "0.0375",
+                "0.88%"
+              ],
+              [
+                "Obama + tabby",
+                "10",
+                "5",
+                "1.0",
+                "0.0187",
+                "0.0375",
+                "0.27%"
+              ],
+              [
+                "Earth + Moon (limitation study)",
+                "12",
+                "6",
+                "1.4",
+                "0.0156",
+                "0.0312",
+                "1.05%"
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Hybrid synthesis",
+            "text": "low = gaussian(A, sigma_low)\nhigh = B - gaussian(B, sigma_high)\nhybrid = low + gain * high"
+          }
+        ]
+      },
+      {
+        "id": "hybrid-color",
+        "title": "Color \u00b7 Which frequency band benefits?",
+        "paragraphs": [
+          "Color is tested in neither image, the low-frequency image only, the high-frequency image only and both images. Low-only color keeps broad skin and background hues associated with the distant astronaut. High-only color contributes local colored edges and cat-eye detail but cannot transfer the cat\u2019s broad coat color, because those low frequencies have been removed.",
+          "For Astronaut + portrait cat, low-only color is the most coherent color variant: its large color regions agree with the distant subject, while grayscale cat detail remains readable. Both-color introduces some competing hue at edges; high-only color has a mostly neutral base. The grayscale versions above make the frequency-dependent identity easier to compare without a persistent broad color cue."
+        ],
+        "figures": [
+          {
+            "path": "images/hybrid_color_comparison.jpg",
+            "caption": "Four controlled color variants use identical alignment, sigma values and gain. Only grayscale conversion changes. Grayscale uses luminance weights 0.2126, 0.7152, 0.0722."
+          }
+        ],
+        "tables": [],
+        "code": []
+      },
+      {
+        "id": "part23",
+        "title": "2.3 \u00b7 Gaussian and Laplacian stacks",
+        "paragraphs": [
+          "A stack keeps every level at full resolution. I set G0 = I, then blur the original independently at sigma = 2, 4, 8, 16 and 32 pixels. The detail bands are Li = Gi - G(i+1) for i = 0,...,4; L5 = G5 is the coarse residual. Independent blurring makes the effective sigma of each level explicit. No image is downsampled and no built-in pyramid routine is used.",
+          "The residual is essential: summing only the detail bands would recover I - G5 and lose the large-scale brightness and color. With the residual, the sum telescopes exactly to I up to floating-point rounding. The apple and orange reconstruction errors are reported below.",
+          "The mask follows the same Gaussian schedule. Each output level is Si = Mi LAi + (1 - Mi) LBi, including the residual level, and the final image is the sum of all Si. A is selected wherever the initial mask is white. This separates fine texture transitions from broad illumination and color transitions."
+        ],
+        "figures": [
+          {
+            "path": "images/stacks_apple.jpg",
+            "caption": "Apple: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays have the same 512 x 512 resolution. Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+          },
+          {
+            "path": "images/stacks_orange.jpg",
+            "caption": "Orange: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays have the same 512 x 512 resolution. Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+          },
+          {
+            "path": "images/stacks_mask.jpg",
+            "caption": "The binary left/right mask is blurred at exactly the Gaussian image-stack scales. Fine bands use a sharp transition; coarser bands mix over progressively wider neighborhoods. White selects apple, black selects orange."
+          },
+          {
+            "path": "images/stacks_oraple_figure342.jpg",
+            "caption": "Reproduction of the Figure 3.42 (a)\u2013(l) layout: rows 1\u20133 show levels 0, 2 and 4, with masked apple, masked orange and their sum in the three columns. Row 4 reconstructs each contribution and the final oraple by summing ALL five detail bands plus the coarse residual. Detail displays share a symmetric contrast scale across each row; row 4 is shown in actual [0,1] intensity."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Stack validation",
+            "columns": [
+              "Invariant",
+              "Maximum absolute error"
+            ],
+            "rows": [
+              [
+                "Apple reconstruction",
+                "1.110e-16"
+              ],
+              [
+                "Orange reconstruction",
+                "1.110e-16"
+              ],
+              [
+                "Final equals sum of all mixed bands",
+                "2.220e-16"
+              ]
+            ]
+          }
+        ],
+        "code": [
+          {
+            "title": "Explicit stacks and reconstruction",
+            "text": "G = [I] + [gaussian(I, 2 * 2**i) for i in range(5)]\nL = [G[i] - G[i+1] for i in range(5)] + [G[-1]]\nS = [M[i] * LA[i] + (1-M[i]) * LB[i] for i in range(6)]\nresult = sum(S)"
+          }
+        ]
+      },
+      {
+        "id": "part24",
+        "title": "2.4 \u00b7 Multiresolution blending",
+        "paragraphs": [
+          "The standard apple/orange blend uses the apple on the left and the orange on the right. A direct binary cut preserves a conspicuous vertical brightness/color discontinuity; mixing corresponding Laplacian bands with Gaussian mask weights spreads that transition according to scale while retaining local texture.",
+          "For these inputs, the mean absolute RGB difference across the two columns adjoining the seam decreases from 0.1323 to 0.0174. This local diagnostic supports the visible seam comparison; it is not a general perceptual-quality score."
+        ],
+        "figures": [
+          {
+            "path": "images/blend_oraple_comparison.jpg",
+            "caption": "Inputs, selection mask, hard-cut baseline and full-color multiresolution oraple. Both baselines use the same preprocessed 512 x 512 input images and the same initial mask."
+          }
+        ],
+        "tables": [],
+        "code": []
+      },
+      {
+        "id": "blend-custom",
+        "title": "Two custom color blends \u00b7 Curved masks",
+        "paragraphs": [
+          "A world in a cup maps NASA\u2019s Earth photograph onto the elliptical coffee surface. Horizontal and vertical scaling are deliberately different to approximate the cup\u2019s viewing angle. The Earth is an imaginative replacement for the crema; the blend adjusts color and low-frequency shading near its elliptical boundary while preserving the continent and cloud texture.",
+          "Moon over the launch pad places a full Moon in the open sky beside the rocket. Its circular mask follows the limb. This is a creative composite: scale and placement are artistic choices rather than an astronomical claim. A smaller maximum blur than in the 512-pixel oraple limits how far brightness spreads around this small inserted object.",
+          "Both masks have curved boundaries (an ellipse and a circle), satisfying the nonrectangular-mask requirement for both custom examples. The saved configuration exposes the source and target centers, radii, number of detail bands and base sigma. Each blend uses four detail bands at sigma 1.5, 3, 6 and 12 pixels plus the coarse residual, and all RGB channels are processed independently.",
+          "For clean placement, the registered source canvas contains the object within its full disk and copies the destination outside that disk. The selection mask is slightly inside the visible disk. This preprocessing avoids blending a black rectangular photo background; the numerical multiresolution method itself is unchanged. The figures show this canvas explicitly so the operation is reproducible.",
+          "Color adds useful semantic contrast in the coffee composite: the blue oceans and white clouds remain distinct from the warm brown cup and crema. The grayscale version keeps the cloud texture but makes the Earth resemble a mottled liquid surface. In the rocket scene the Moon itself is nearly neutral; color mainly preserves the cool sky and warm launch-pad lights. I prefer RGB for both finished blends because those contextual colors support the scene without changing the blending algorithm.",
+          "The principal limitation is physical consistency: multiresolution blending smooths intensity transitions but cannot synthesize correct reflections, shadows or perspective. The coffee example benefits from an elliptical warp, while the Moon retains a sharper natural limb. All arithmetic remains signed float64 until final display clipping."
+        ],
+        "figures": [
+          {
+            "path": "images/blend_earth_coffee_overview.jpg",
+            "caption": "A world in a cup: both custom blends use a nonrectangular mask and three color channels. The object is scaled/placed first. The source canvas uses the destination beyond the object disk, avoiding a black rectangular background in coarse levels."
+          },
+          {
+            "path": "images/blend_earth_coffee_maskstack.jpg",
+            "caption": "A world in a cup: the initial curved selection becomes smoother at coarser scales. The complete stack includes the residual weight."
+          },
+          {
+            "path": "images/blend_earth_coffee_process.jpg",
+            "caption": "Favorite custom blend, A world in a cup: masked object/source contribution, masked destination contribution and their sum at detail levels 0, 1 and 3; the final row sums ALL detail bands and the coarse residual. This follows the multiscale contribution idea of Burt\u2013Adelson Figure 10. Each detail row uses a common symmetric scale; reconstructed rows use actual intensity."
+          },
+          {
+            "path": "images/blend_moon_rocket_overview.jpg",
+            "caption": "Moon over the launch pad: both custom blends use a nonrectangular mask and three color channels. The object is scaled/placed first. The source canvas uses the destination beyond the object disk, avoiding a black rectangular background in coarse levels. Derived from Gregory H. Revera\u2019s Moon photograph, CC BY-SA 3.0; this adapted figure is available under the same license."
+          },
+          {
+            "path": "images/blend_moon_rocket_maskstack.jpg",
+            "caption": "Moon over the launch pad: the initial curved selection becomes smoother at coarser scales. The complete stack includes the residual weight."
+          },
+          {
+            "path": "images/blend_color_comparison.jpg",
+            "caption": "Controlled grayscale-versus-RGB comparison for both custom blends. The grayscale version applies the same stack, mask and placement to luminance inputs; only the presence of color changes."
+          }
+        ],
+        "tables": [
+          {
+            "title": "Custom-blend configuration",
+            "columns": [
+              "Blend",
+              "shape H x W",
+              "center x,y",
+              "mask radii x,y",
+              "detail bands",
+              "base sigma",
+              "values clipped"
+            ],
+            "rows": [
+              [
+                "A world in a cup",
+                "400 x 600",
+                "[286, 151]",
+                "[77, 36]",
+                "4",
+                "1.5",
+                "0.13%"
+              ],
+              [
+                "Moon over the launch pad",
+                "427 x 640",
+                "[140, 89]",
+                "[41, 41]",
+                "4",
+                "1.5",
+                "0.01%"
+              ]
+            ]
+          }
+        ],
+        "code": []
+      }
+    ],
+    "measurements": {
+      "hybrids": [
+        {
+          "id": "derek_nutmeg",
+          "title": "Derek + Nutmeg",
+          "low_path": "data/provided/DerekPicture.jpg",
+          "high_path": "data/provided/nutmeg.jpg",
+          "low_points": [
+            [
+              300,
+              344
+            ],
+            [
+              439,
+              331
+            ]
+          ],
+          "high_points": [
+            [
+              600,
+              290
+            ],
+            [
+              753,
+              366
+            ]
+          ],
+          "target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "shape": [
+            512,
+            512
+          ],
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1.0,
+          "low_color": false,
+          "high_color": false,
+          "low_matrix": [
+            [
+              1.1410979989738328,
+              -0.10672139558748077,
+              -135.61723961005646
+            ],
+            [
+              0.10672139558748077,
+              1.1410979989738328,
+              -214.5541303232427
+            ]
+          ],
+          "high_matrix": [
+            [
+              0.8387870481411683,
+              0.416652389926332,
+              -454.1014219633373
+            ],
+            [
+              -0.416652389926332,
+              0.8387870481411683,
+              216.7431899948604
+            ]
+          ],
+          "clip_fraction": 0.009326934814453125,
+          "range": [
+            -0.15557213490661004,
+            1.2414687407969232
+          ],
+          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
+          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "final": "images/hybrid_derek_nutmeg_final.jpg",
+          "alignment": "images/hybrid_derek_nutmeg_alignment.jpg",
+          "components": "images/hybrid_derek_nutmeg_components.jpg",
+          "near_far": "images/hybrid_derek_nutmeg_distance.jpg"
+        },
+        {
+          "id": "astronaut_chelsea",
+          "title": "Astronaut + portrait cat",
+          "low_path": "data/custom/astronaut.png",
+          "high_path": "data/custom/portrait_cat.jpg",
+          "low_points": [
+            [
+              203,
+              101
+            ],
+            [
+              247,
+              102
+            ]
+          ],
+          "high_points": [
+            [
+              780,
+              688
+            ],
+            [
+              1042,
+              692
+            ]
+          ],
+          "target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "shape": [
+            512,
+            512
+          ],
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1.0,
+          "low_color": false,
+          "high_color": false,
+          "low_matrix": [
+            [
+              3.6344863190500774,
+              0.08260196179659267,
+              -576.1435209086216
+            ],
+            [
+              -0.08260196179659267,
+              3.6344863190500774,
+              -140.3149199793495
+            ]
+          ],
+          "high_matrix": [
+            [
+              0.6105447130789398,
+              0.009321293329449462,
+              -312.63792601223423
+            ],
+            [
+              -0.009321293329449462,
+              0.6105447130789398,
+              -202.78415380133998
+            ]
+          ],
+          "clip_fraction": 0.0088348388671875,
+          "range": [
+            -0.2355017642972339,
+            1.3696856657059562
+          ],
+          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
+          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "final": "images/hybrid_astronaut_chelsea_final.jpg",
+          "alignment": "images/hybrid_astronaut_chelsea_alignment.jpg",
+          "components": "images/hybrid_astronaut_chelsea_components.jpg",
+          "near_far": "images/hybrid_astronaut_chelsea_distance.jpg"
+        },
+        {
+          "id": "obama_tabby",
+          "title": "Obama + tabby",
+          "low_path": "data/custom/obama.jpg",
+          "high_path": "data/custom/tabby.jpg",
+          "low_points": [
+            [
+              1185,
+              567
+            ],
+            [
+              1477,
+              568
+            ]
+          ],
+          "high_points": [
+            [
+              626,
+              644
+            ],
+            [
+              843,
+              644
+            ]
+          ],
+          "target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "shape": [
+            512,
+            512
+          ],
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1.0,
+          "low_color": false,
+          "high_color": false,
+          "low_matrix": [
+            [
+              0.5479387791004515,
+              0.0018765026681522312,
+              -480.37143024687737
+            ],
+            [
+              -0.0018765026681522312,
+              0.5479387791004515,
+              -98.45763208819562
+            ]
+          ],
+          "high_matrix": [
+            [
+              0.7373271889400922,
+              -0.0,
+              -291.5668202764977
+            ],
+            [
+              0.0,
+              0.7373271889400922,
+              -264.8387096774194
+            ]
+          ],
+          "clip_fraction": 0.002704620361328125,
+          "range": [
+            -0.04227652655504638,
+            1.2203893641678283
+          ],
+          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
+          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "final": "images/hybrid_obama_tabby_final.jpg",
+          "alignment": "images/hybrid_obama_tabby_alignment.jpg",
+          "components": "images/hybrid_obama_tabby_components.jpg",
+          "near_far": "images/hybrid_obama_tabby_distance.jpg"
+        },
+        {
+          "id": "earth_moon",
+          "title": "Earth + Moon (limitation study)",
+          "low_path": "data/custom/earth.jpg",
+          "high_path": "data/custom/moon.jpg",
+          "low_points": [
+            [
+              157,
+              1495
+            ],
+            [
+              2827,
+              1495
+            ]
+          ],
+          "high_points": [
+            [
+              218,
+              1249
+            ],
+            [
+              2364,
+              1249
+            ]
+          ],
+          "target_points": [
+            [
+              45,
+              256
+            ],
+            [
+              467,
+              256
+            ]
+          ],
+          "shape": [
+            512,
+            512
+          ],
+          "sigma_low": 12,
+          "sigma_high": 6,
+          "gain": 1.4,
+          "low_color": false,
+          "high_color": false,
+          "low_matrix": [
+            [
+              0.15805243445692885,
+              -0.0,
+              20.185767790262172
+            ],
+            [
+              0.0,
+              0.15805243445692885,
+              19.711610486891374
+            ]
+          ],
+          "high_matrix": [
+            [
+              0.1966449207828518,
+              -0.0,
+              2.131407269338304
+            ],
+            [
+              0.0,
+              0.1966449207828518,
+              10.390493942218086
+            ]
+          ],
+          "clip_fraction": 0.010486602783203125,
+          "range": [
+            -0.1514362908752258,
+            1.4428496943647429
+          ],
+          "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
+          "high_half_amplitude_cycles_per_pixel": 0.031231770854879597,
+          "final": "images/hybrid_earth_moon_final.jpg",
+          "alignment": "images/hybrid_earth_moon_alignment.jpg",
+          "components": "images/hybrid_earth_moon_components.jpg",
+          "near_far": "images/hybrid_earth_moon_distance.jpg"
+        }
+      ],
+      "stacks": {
+        "apple_reconstruction_max_abs_error": 1.1102230246251565e-16,
+        "orange_reconstruction_max_abs_error": 1.1102230246251565e-16,
+        "final_decomposition_max_abs_error": 2.220446049250313e-16,
+        "stack_shape": [
+          512,
+          512,
+          3
+        ],
+        "bands": 5,
+        "coarse_sigma": 32,
+        "clip_fraction": 0.0003217061360677083,
+        "figure342_shared_row_scales": [
+          0.05575399980437635,
+          0.06550218619220113,
+          0.1129539931905236
+        ],
+        "mean_boundary_jump_hard": 0.13225340420925027,
+        "mean_boundary_jump_blend": 0.01737492171908187
+      },
+      "blends": [
+        {
+          "id": "earth_coffee",
+          "title": "A world in a cup",
+          "background": "data/custom/coffee.png",
+          "object": "data/custom/earth.jpg",
+          "shape": [
+            400,
+            600
+          ],
+          "source_center": [
+            1494,
+            1495
+          ],
+          "source_radii": [
+            1335,
+            1335
+          ],
+          "target_center": [
+            286,
+            151
+          ],
+          "target_radii": [
+            80,
+            39
+          ],
+          "mask_radii": [
+            77,
+            36
+          ],
+          "bands": 4,
+          "base_sigma": 1.5,
+          "placement_matrix": [
+            [
+              0.0599250936329588,
+              0.0,
+              196.47191011235955
+            ],
+            [
+              0.0,
+              0.029213483146067417,
+              107.32584269662921
+            ]
+          ],
+          "clip_fraction": 0.001288888888888889,
+          "range": [
+            -1.918670890230039e-09,
+            1.0841518032273214
+          ],
+          "reconstruction_error": 4.440892098500626e-16,
+          "final": "images/blend_earth_coffee_final.jpg",
+          "mask_area_pixels": 8687,
+          "process_shared_row_scales": [
+            0.266264458859101,
+            0.11845939047659969,
+            0.18571898390384606
+          ]
+        },
+        {
+          "id": "moon_rocket",
+          "title": "Moon over the launch pad",
+          "background": "data/custom/rocket.jpg",
+          "object": "data/custom/moon.jpg",
+          "shape": [
+            427,
+            640
+          ],
+          "source_center": [
+            1291,
+            1249
+          ],
+          "source_radii": [
+            1073,
+            1073
+          ],
+          "target_center": [
+            140,
+            89
+          ],
+          "target_radii": [
+            42,
+            42
+          ],
+          "mask_radii": [
+            41,
+            41
+          ],
+          "bands": 4,
+          "base_sigma": 1.5,
+          "placement_matrix": [
+            [
+              0.0391425908667288,
+              0.0,
+              89.46691519105312
+            ],
+            [
+              0.0,
+              0.0391425908667288,
+              40.11090400745573
+            ]
+          ],
+          "clip_fraction": 8.904176424668229e-05,
+          "range": [
+            -0.0004305394265265161,
+            1.0
+          ],
+          "reconstruction_error": 2.220446049250313e-16,
+          "final": "images/blend_moon_rocket_final.jpg",
+          "mask_area_pixels": 5261
+        }
+      ]
+    },
+    "validation": {
+      "same_image_max_abs_error": 2.220446049250313e-16,
+      "all_white_mask_max_abs_error": 1.1102230246251565e-16,
+      "all_black_mask_max_abs_error": 1.1102230246251565e-16,
+      "complementary_mask_symmetry_max_abs_error": 2.220446049250313e-16
+    },
+    "reproduce": "python run_frequencies.py",
+    "config": "frequencies_config.json",
+    "implementation": "src/frequencies.py"
+  }
+}
