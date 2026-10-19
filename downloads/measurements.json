@@ -847,11 +847,12 @@
         "paragraphs": [
           "Tabby disguise transfers the tabby\u2019s central face onto the orange-and-white cat while retaining the destination\u2019s ears, whiskers and chest. An irregular 18-vertex polygon follows the forehead and cheeks. Eye-center alignment puts the face texture in a plausible position. The hard cut exposes the polygon immediately; multiscale blending softens the coat-color transition while keeping the transferred eyes and fur crisp.",
           "One world, two surfaces is an imaginary globe: Earth\u2019s oceans and clouds transition into lunar craters along an S-shaped boundary. Ellipses fitted to the largest source contours above luminance 0.04 are mapped to a shared circle. This affine registration corrects approximately 1% anisotropy in the photographed Earth outline; the Moon needs almost uniform scaling. Thresholding only measures geometry and does not mask or recolor either photograph. Their shared round outline supports this composite even though their textures did not produce a convincing frequency-switching hybrid. This is an artistic surface fusion, not an astronomical depiction.",
-          "Both examples use the entire registered source photographs. The background is never copied into the other source before filtering. Hard cut, single-scale feathering and multiscale blending receive identical arrays and the same binary mask. The feather baseline uses the coarsest Gaussian mask on the full images: its wide transition mixes competing fine details as well as broad colors.",
+          "Both examples use the entire registered source photographs. The background is never copied into the other source before filtering. Hard cut, single-scale feathering and multiscale blending receive identical arrays and the same underlying binary selection. The feather baseline uses the exact coarsest stack mask on the full images: its wide transition mixes competing fine details as well as broad colors.",
+          "The globe initially showed a small notch where its seam met the silhouette: a binary mask still switched the finest detail band abruptly between different limb contrasts. I tested initial-mask Gaussian widths of 0, 2, 4, 8, 12 and 16 pixels. Sigma 8 is the smallest tested width that makes the join continuous without unnecessarily widening the texture mixture. Only the selection weights change; the source photographs and image bands remain sharp. The Gaussian mask stack starts from this softened selection, giving nominal widths of 8, 8.2, 8.9, 11.3, 17.9, 33.0 and 64.5 pixels. The cat and canonical oraple retain their binary finest masks. The controlled lower-limb sweep is in the supplement.",
           "The cat uses five detail bands (sigma = 2, 4, 8, 16, 32 pixels); the globe uses six (2, 4, 8, 16, 32, 64 pixels). Both retain their coarse residual. Supplementary sweeps test four, five and six bands without changing other inputs. For the cat, 16 pixels leaves a more conspicuous facial patch; 32 softens the coat boundary without the broader tonal spill of 64. The globe benefits from 64 pixels because its brightness mismatch spans a large fraction of the disk.",
           "Compared with broad feathering, the cat\u2019s cheek and muzzle retain more definite tabby detail; feathering mixes both faces over a broad transition. At the globe\u2019s boundary, clouds and crater detail remain more localized in the multiscale result. The boundary-jump values below measure adjacent RGB differences across the original binary contour. Feathering gives still smaller jumps because it mixes more image detail; minimizing this number would not select the most convincing photograph. It is a local seam diagnostic, not a perceptual score or proof of physical realism.",
           "Color helps both concepts. The warm tabby patch remains distinct from white fur and orange ears; grayscale makes these coat regions less distinct. The globe\u2019s blue oceans contrast with the nearly neutral Moon and make the two surfaces easier to identify. I prefer RGB for the final composites; grayscale controls show that seam smoothing also works without this color cue.",
-          "Multiresolution blending cannot fix anatomical or surface mismatches. The cats still differ slightly in muzzle shape and fur direction, and lunar features cannot continue Earth\u2019s clouds naturally. A small transition remains where the globe seam meets the outer limb. These limitations remain visible in the unretouched results and matched close-ups. Processing stays signed float64; only final image display is clipped to [0,1]."
+          "Multiresolution blending cannot fix anatomical or surface mismatches. The cats still differ slightly in muzzle shape and fur direction, and lunar features cannot continue Earth\u2019s clouds naturally. Smoothing the finest mask removes the abrupt limb join, but does not make this imaginary surface physically continuous. Processing stays signed float64; only final image display is clipped to [0,1]."
         ],
         "figures": [
           {
@@ -861,7 +862,7 @@
           },
           {
             "path": "images/blend_custom_cat_comparison.jpg",
-            "caption": "Tabby disguise: controlled baselines using the same alignment and binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The multiscale result softens the forehead/cheek boundary while preserving the tabby eyes and fur. Broad feathering mixes competing facial detail near the cheeks and muzzle. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "caption": "Tabby disguise: controlled baselines using the same alignment and underlying binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The multiscale result softens the forehead/cheek boundary while preserving the tabby eyes and fur. Broad feathering mixes competing facial detail near the cheeks and muzzle. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
             "heading": "Tabby disguise \u00b7 Mask and fair baselines"
           },
           {
@@ -872,7 +873,7 @@
           },
           {
             "path": "images/blend_custom_cat_maskstack.jpg",
-            "caption": "Tabby disguise: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512.",
+            "caption": "Tabby disguise: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512. ",
             "heading": "Tabby disguise \u00b7 Complete mask stack",
             "supplement": true
           },
@@ -894,18 +895,18 @@
           },
           {
             "path": "images/blend_custom_planet_comparison.jpg",
-            "caption": "One world, two surfaces: controlled baselines using the same alignment and binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail; the fine cloud and crater structures remain more localized than in the broad feather mixture. The seam is S-shaped rather than straight. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "caption": "One world, two surfaces: controlled baselines using the same alignment and underlying binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The initial mask is smoothed at sigma=8 pixels before building the mask stack; image detail bands are unchanged. A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail. Softening the finest selection mask removes the abrupt silhouette join while keeping cloud and crater structures more localized than in the broad feather mixture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
             "heading": "One world, two surfaces \u00b7 Mask and fair baselines"
           },
           {
             "path": "images/blend_custom_planet_detail.jpg",
-            "caption": "Identical boundary crops, x=170:350, y=90:435, with identical display scaling. The hard-cut brightness discontinuity is greatly reduced, although clouds and lunar features cannot form a physically continuous texture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "caption": "Identical boundary crops, x=170:350, y=90:435, with identical display scaling. The hard-cut brightness discontinuity is greatly reduced. The softened finest mask also avoids an abrupt change in limb contrast; clouds and lunar features still cannot form a physically continuous texture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
             "heading": "One world, two surfaces \u00b7 Boundary detail",
             "supplement": true
           },
           {
             "path": "images/blend_custom_planet_maskstack.jpg",
-            "caption": "One world, two surfaces: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512.",
+            "caption": "One world, two surfaces: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512. The initial Gaussian is followed by each stack Gaussian; the labels give nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2). The actual discrete convolutions are used for every weight.",
             "heading": "One world, two surfaces \u00b7 Complete mask stack",
             "supplement": true
           },
@@ -913,6 +914,12 @@
             "path": "images/blend_custom_planet_sweep.jpg",
             "caption": "Controlled scale sweep: sources, transform, mask and base sigma remain fixed; only the number of detail bands changes. Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
             "heading": "One world, two surfaces \u00b7 Scale selection",
+            "supplement": true
+          },
+          {
+            "path": "images/blend_custom_planet_mask_sweep.jpg",
+            "caption": "Controlled initial-mask sweep at the lower limb, x=220:355, y=423:491. Sources, alignment and all six image detail bands stay fixed. A binary finest mask leaves an abrupt change in limb contrast. Sigma 8 smooths that join; larger widths mix a wider strip of fine cloud/crater texture. This changes selection weights only, not the source photographs or the reconstructed pixels after blending. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "One world, two surfaces \u00b7 Finest-mask control",
             "supplement": true
           },
           {
@@ -928,7 +935,7 @@
               "Blend",
               "Mask",
               "Bands",
-              "Max sigma",
+              "Image sigma max",
               "Hard jump",
               "Feather jump",
               "Stack jump",
@@ -952,7 +959,7 @@
                 "64",
                 "0.2718",
                 "0.0422",
-                "0.0808",
+                "0.0424",
                 "4.92%"
               ]
             ]
@@ -1781,7 +1788,15 @@
             ]
           ],
           "coarse_sigma": 32,
-          "feather_sigma": 32,
+          "feather_sigma": 32.0,
+          "mask_equivalent_sigmas": [
+            0.0,
+            2.0,
+            4.0,
+            8.0,
+            16.0,
+            32.0
+          ],
           "source_precomposition": false,
           "clip_fraction": 3.5603841145833336e-05,
           "range": [
@@ -1862,10 +1877,25 @@
           ],
           "favorite": false,
           "alignment_note": "Measured disk ellipses are mapped to a common circle of radius 220 pixels centered at (256,256). Earth needs a small anisotropic correction; the Moon's measured outline is almost circular.",
-          "visual_observation": "A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail; the fine cloud and crater structures remain more localized than in the broad feather mixture. The seam is S-shaped rather than straight.",
-          "crop_observation": "The hard-cut brightness discontinuity is greatly reduced, although clouds and lunar features cannot form a physically continuous texture.",
+          "visual_observation": "A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail. Softening the finest selection mask removes the abrupt silhouette join while keeping cloud and crater structures more localized than in the broad feather mixture.",
+          "crop_observation": "The hard-cut brightness discontinuity is greatly reduced. The softened finest mask also avoids an abrupt change in limb contrast; clouds and lunar features still cannot form a physically continuous texture.",
           "selection_note": "Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary.",
           "derivative_notice": "Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+          "mask_sigma": 8,
+          "trial_mask_sigmas": [
+            0,
+            2,
+            4,
+            8,
+            12,
+            16
+          ],
+          "mask_trial_crop": [
+            220,
+            423,
+            355,
+            491
+          ],
           "a_matrix": [
             [
               0.1638159531744351,
@@ -1891,37 +1921,78 @@
             ]
           ],
           "coarse_sigma": 64,
-          "feather_sigma": 64,
+          "feather_sigma": 64.4980619863884,
+          "mask_equivalent_sigmas": [
+            8.0,
+            8.246211251235321,
+            8.94427190999916,
+            11.313708498984761,
+            17.88854381999832,
+            32.984845004941285,
+            64.4980619863884
+          ],
           "source_precomposition": false,
-          "clip_fraction": 0.049229939778645836,
+          "clip_fraction": 0.0492401123046875,
           "range": [
-            -0.07965645020446865,
-            1.0432103867504339
+            -0.0689528654380708,
+            0.9992668982615535
           ],
           "reconstruction_error": 3.3306690738754696e-16,
           "boundary_jump_hard": 0.27175164706895155,
-          "boundary_jump_feather": 0.04215387610896192,
-          "boundary_jump_multiscale": 0.08078306375830442,
+          "boundary_jump_feather": 0.04215422989009582,
+          "boundary_jump_multiscale": 0.04235498055038322,
           "final": "images/blend_custom_planet_final.jpg",
           "mask_area_pixels": 131283,
           "trial_results": [
             {
               "bands": 4,
               "coarse_sigma": 16,
-              "boundary_jump": 0.08101358983369152,
-              "clip_fraction": 0.015506744384765625
+              "boundary_jump": 0.042880635755976435,
+              "clip_fraction": 0.014842987060546875
             },
             {
               "bands": 5,
               "coarse_sigma": 32,
-              "boundary_jump": 0.08081756328670349,
-              "clip_fraction": 0.015199025472005209
+              "boundary_jump": 0.042496386099512826,
+              "clip_fraction": 0.016012827555338543
             },
             {
               "bands": 6,
               "coarse_sigma": 64,
+              "boundary_jump": 0.04235498055038322,
+              "clip_fraction": 0.0492401123046875
+            }
+          ],
+          "mask_trials": [
+            {
+              "mask_sigma": 0,
               "boundary_jump": 0.08078306375830442,
               "clip_fraction": 0.049229939778645836
+            },
+            {
+              "mask_sigma": 2,
+              "boundary_jump": 0.04518816361170048,
+              "clip_fraction": 0.049184163411458336
+            },
+            {
+              "mask_sigma": 4,
+              "boundary_jump": 0.04306305760290013,
+              "clip_fraction": 0.049190521240234375
+            },
+            {
+              "mask_sigma": 8,
+              "boundary_jump": 0.04235498055038322,
+              "clip_fraction": 0.0492401123046875
+            },
+            {
+              "mask_sigma": 12,
+              "boundary_jump": 0.04217795152392579,
+              "clip_fraction": 0.04938379923502604
+            },
+            {
+              "mask_sigma": 16,
+              "boundary_jump": 0.042106719761644526,
+              "clip_fraction": 0.049585978190104164
             }
           ],
           "registration_fits": {
