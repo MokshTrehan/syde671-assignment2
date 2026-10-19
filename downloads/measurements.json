@@ -2433,5 +2433,869 @@
     "reproduce": "python run_frequencies.py",
     "config": "frequencies_config.json",
     "implementation": "src/frequencies.py"
+  },
+  "audit": {
+    "schema_version": 1,
+    "config": "frequencies_config.json",
+    "reference_measurements": "results/frequencies.json",
+    "reproduce": ".venv/bin/python run_audit.py",
+    "definitions": {
+      "numerical_domain": "Signed float64 image arrays before clipping, quantization, or JPEG export. Input RGB is scaled to [0,1]. JSON values are not rounded.",
+      "clip_fraction": "Count of scalar RGB channel values strictly below 0 or above 1 divided by the total number of scalar RGB values.",
+      "clip_fraction_tolerance_1e6": "Only the audit blending comparison additionally uses C_epsilon = mean(image < -1e-6 or image > 1+1e-6) over scalar RGB values, with epsilon = 1e-6. This tolerance discounts numerical roundoff and negligible excursions near display limits. The original strict clip_fraction and signed ranges are retained for every method; image computation and display export are unchanged. This is not a visual-quality score.",
+      "band_contrast_ratio": "Population std(high luminance) / max(population std(low luminance), 1e-12), where high includes synthesis gain and luminance = 0.2126 R + 0.7152 G + 0.0722 B. Reuses hybrid_report._band_ratio: native 512-pixel bands are measured directly; 128-pixel bands use PIL signed float32 Lanczos reduction then float64 standard deviation. No clipping or uint8 conversion. This is a band-contrast diagnostic, not a perceptual or identity score.",
+      "boundary_jump": "J = mean absolute RGB difference across all horizontal and vertical adjacent pixel pairs straddling the ORIGINAL binary selection contour, pooled equally over all pairs and channels. Reuses blend_report.boundary_jump. Natural image texture contributes; this is not an overall perceptual quality score.",
+      "feather": "The exact coarsest Gaussian mask returned by multiresolution_blend weights the full registered sources: M_last A + (1-M_last) B. This is the same mask used for the multiscale coarse residual, including any configured initial mask smoothing.",
+      "rms": "sqrt(mean(X**2)) over all pixels and RGB channels, with no centering, clipping, or contrast normalization.",
+      "mixed_contribution": "S_i = M_i L_Ai + (1-M_i) L_Bi; L_i = G_i-G_(i+1) for detail levels, and L_5 = G_5 for the oraple coarse residual.",
+      "coarse_to_fine_trace": "T_5 = S_5; T_k = T_(k+1) + S_k for k = 4,...,0. Remaining RMS is RMS(final-T_k), using the unmodified multiresolution_blend final. It need not decrease monotonically because signed bands can cancel. The endpoint can differ at floating-point roundoff because the accumulation order differs.",
+      "fine_to_coarse_trace": "U_i = sum(S_0,...,S_i); remaining RMS = RMS(final-U_i). Retained as a numerical cross-check, not the primary report trace.",
+      "saved_checks": "Numeric matches use numpy.allclose with rtol=1e-12 and atol=1e-12 against results/frequencies.json; configuration labels and landmarks must match exactly. A mismatch raises AssertionError.",
+      "interpretation": "No reference composite or ground truth is available. These diagnostics do not establish MSE, SSIM, perceptual quality, or a calibrated viewing distance."
+    },
+    "hybrids": [
+      {
+        "id": "derek_nutmeg",
+        "title": "Derek + Nutmeg",
+        "width": 512,
+        "height": 512,
+        "sigma_low": 8,
+        "sigma_high": 1.5,
+        "gain": 2.25,
+        "low_color": false,
+        "high_color": false,
+        "clip_fraction": 0.02355194091796875,
+        "range": [
+          -0.29802048683133725,
+          1.6455294930403812
+        ],
+        "high_to_low_contrast_ratio_512": 0.3972606844657606,
+        "high_to_low_contrast_ratio_128": 0.14962048346295095,
+        "saved_checks": {
+          "clip_fraction": true,
+          "range": true,
+          "ratio_512": true,
+          "ratio_128": true,
+          "low_matrix": true,
+          "high_matrix": true
+        },
+        "baseline": {
+          "label": "Wide-band baseline on selected geometry",
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1,
+          "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
+          "low_color": false,
+          "high_color": false,
+          "clip_fraction": 0.015869140625,
+          "range": [
+            -0.12581760838133005,
+            1.2136671735156634
+          ],
+          "high_to_low_contrast_ratio_512": 0.3135521431181541,
+          "high_to_low_contrast_ratio_128": 0.23611908231850642,
+          "saved_checks": {
+            "ratio_512": true,
+            "ratio_128": true
+          }
+        }
+      },
+      {
+        "id": "astronaut_chelsea",
+        "title": "Astronaut + portrait cat",
+        "width": 512,
+        "height": 512,
+        "sigma_low": 8,
+        "sigma_high": 1.5,
+        "gain": 2.7,
+        "low_color": false,
+        "high_color": false,
+        "clip_fraction": 0.0274200439453125,
+        "range": [
+          -0.6242795627023905,
+          1.9541942698860417
+        ],
+        "high_to_low_contrast_ratio_512": 0.3176327195046345,
+        "high_to_low_contrast_ratio_128": 0.09833661902414681,
+        "saved_checks": {
+          "clip_fraction": true,
+          "range": true,
+          "ratio_512": true,
+          "ratio_128": true,
+          "low_matrix": true,
+          "high_matrix": true
+        },
+        "baseline": {
+          "label": "Wide-band baseline on selected geometry",
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1,
+          "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
+          "low_color": false,
+          "high_color": false,
+          "clip_fraction": 0.01239013671875,
+          "range": [
+            -0.2949267864755315,
+            1.358561337614728
+          ],
+          "high_to_low_contrast_ratio_512": 0.20032760176336825,
+          "high_to_low_contrast_ratio_128": 0.1492628768178219,
+          "saved_checks": {
+            "ratio_512": true,
+            "ratio_128": true
+          }
+        }
+      },
+      {
+        "id": "obama_tabby",
+        "title": "Obama + tabby",
+        "width": 512,
+        "height": 512,
+        "sigma_low": 6,
+        "sigma_high": 1.5,
+        "gain": 2.2,
+        "low_color": false,
+        "high_color": false,
+        "clip_fraction": 0.02071380615234375,
+        "range": [
+          -0.40895982939132364,
+          1.550152131329233
+        ],
+        "high_to_low_contrast_ratio_512": 0.9416266579338411,
+        "high_to_low_contrast_ratio_128": 0.24382571690017632,
+        "saved_checks": {
+          "clip_fraction": true,
+          "range": true,
+          "ratio_512": true,
+          "ratio_128": true,
+          "low_matrix": true,
+          "high_matrix": true
+        },
+        "baseline": {
+          "label": "Wide-band baseline on selected geometry",
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1,
+          "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
+          "low_color": false,
+          "high_color": false,
+          "clip_fraction": 0.002704620361328125,
+          "range": [
+            -0.04227652655504638,
+            1.2203893641678283
+          ],
+          "high_to_low_contrast_ratio_512": 0.6854327457557232,
+          "high_to_low_contrast_ratio_128": 0.43765545235085646,
+          "saved_checks": {
+            "ratio_512": true,
+            "ratio_128": true
+          }
+        }
+      }
+    ],
+    "favorite_refinement": {
+      "id": "astronaut_chelsea",
+      "figure": "images/hybrid_astronaut_chelsea_refinement.jpg",
+      "design": "2 geometries x 2 filter sets; same original photographs, cat alignment, color flags, canvas, and interpolation. Every original is geometrically resampled once per alignment.",
+      "width": 512,
+      "height": 512,
+      "high_matrix": [
+        [
+          0.6105447130789398,
+          0.009321293329449462,
+          -312.63792601223423
+        ],
+        [
+          -0.009321293329449462,
+          0.6105447130789398,
+          -202.78415380133998
+        ]
+      ],
+      "low_color": false,
+      "high_color": false,
+      "trials": [
+        {
+          "label": "Common eye targets / reference filters",
+          "geometry": "common",
+          "filter_set": "reference",
+          "sigma_low": 6,
+          "sigma_high": 1.5,
+          "gain": 3.0,
+          "low_target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "low_matrix": [
+            [
+              3.6344863190500774,
+              0.08260196179659267,
+              -576.1435209086216
+            ],
+            [
+              -0.08260196179659267,
+              3.6344863190500774,
+              -140.3149199793495
+            ]
+          ],
+          "clip_fraction": 0.023860931396484375,
+          "range": [
+            -0.7749343168700958,
+            2.070002046107769
+          ],
+          "high_to_low_contrast_ratio_512": 0.37715544699692566,
+          "high_to_low_contrast_ratio_128": 0.11676203364064758,
+          "saved_checks": {
+            "label": true,
+            "sigma_low": true,
+            "sigma_high": true,
+            "gain": true,
+            "low_target_points": true,
+            "clip_fraction": true
+          },
+          "matches_saved_refinement_trial": true
+        },
+        {
+          "label": "Common eye targets / selected filters",
+          "geometry": "common",
+          "filter_set": "selected",
+          "sigma_low": 8,
+          "sigma_high": 1.5,
+          "gain": 2.7,
+          "low_target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "low_matrix": [
+            [
+              3.6344863190500774,
+              0.08260196179659267,
+              -576.1435209086216
+            ],
+            [
+              -0.08260196179659267,
+              3.6344863190500774,
+              -140.3149199793495
+            ]
+          ],
+          "clip_fraction": 0.0190582275390625,
+          "range": [
+            -0.6767400557295444,
+            1.9463685562011346
+          ],
+          "high_to_low_contrast_ratio_512": 0.3467611279857714,
+          "high_to_low_contrast_ratio_128": 0.10735490851859493,
+          "saved_checks": {
+            "label": true,
+            "sigma_low": true,
+            "sigma_high": true,
+            "gain": true,
+            "low_target_points": true,
+            "clip_fraction": true
+          },
+          "matches_saved_refinement_trial": true
+        },
+        {
+          "label": "Refined geometry / reference filters",
+          "geometry": "refined",
+          "filter_set": "reference",
+          "sigma_low": 6,
+          "sigma_high": 1.5,
+          "gain": 3.0,
+          "low_target_points": [
+            [
+              182,
+              202
+            ],
+            [
+              318,
+              202
+            ]
+          ],
+          "low_matrix": [
+            [
+              3.0893133711925658,
+              0.07021166752710377,
+              -452.22199277232835
+            ],
+            [
+              -0.07021166752710377,
+              3.0893133711925658,
+              -95.76768198244707
+            ]
+          ],
+          "clip_fraction": 0.03493499755859375,
+          "range": [
+            -0.6954155513131045,
+            2.082517099742936
+          ],
+          "high_to_low_contrast_ratio_512": 0.34483833447299744,
+          "high_to_low_contrast_ratio_128": 0.10675642295550461,
+          "saved_checks": {
+            "label": true,
+            "sigma_low": true,
+            "sigma_high": true,
+            "gain": true,
+            "low_target_points": true,
+            "clip_fraction": true
+          },
+          "matches_saved_refinement_trial": true
+        },
+        {
+          "label": "Refined geometry / selected filters",
+          "geometry": "refined",
+          "filter_set": "selected",
+          "sigma_low": 8,
+          "sigma_high": 1.5,
+          "gain": 2.7,
+          "low_target_points": [
+            [
+              182,
+              202
+            ],
+            [
+              318,
+              202
+            ]
+          ],
+          "low_matrix": [
+            [
+              3.0893133711925658,
+              0.07021166752710377,
+              -452.22199277232835
+            ],
+            [
+              -0.07021166752710377,
+              3.0893133711925658,
+              -95.76768198244707
+            ]
+          ],
+          "clip_fraction": 0.0274200439453125,
+          "range": [
+            -0.6242795627023905,
+            1.9541942698860417
+          ],
+          "high_to_low_contrast_ratio_512": 0.3176327195046345,
+          "high_to_low_contrast_ratio_128": 0.09833661902414681,
+          "saved_checks": {
+            "label": true,
+            "sigma_low": true,
+            "sigma_high": true,
+            "gain": true,
+            "low_target_points": true,
+            "clip_fraction": true
+          },
+          "matches_saved_refinement_trial": true
+        }
+      ],
+      "all_clip_fractions_match_saved": true
+    },
+    "oraple_trace": {
+      "id": "oraple",
+      "width": 512,
+      "height": 367,
+      "channels": 3,
+      "source_shape": [
+        530,
+        740,
+        3
+      ],
+      "bands": 5,
+      "base_sigma": 2,
+      "gaussian_input_sigmas": [
+        0,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "mask_sigmas": [
+        0,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "seam_column": 256,
+      "hard_boundary_jump": 0.17155202024201277,
+      "steps": [
+        {
+          "step": 1,
+          "level": 5,
+          "added_band": "S5",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 32,
+          "next_gaussian_input_sigma": null,
+          "laplacian_definition": "L5 = G5",
+          "mask_sigma": 32,
+          "contribution_rms": 0.3965951867206565,
+          "remaining_rms": 0.10923303922740184,
+          "remaining_max_abs": 0.833998819018707,
+          "cumulative_range": [
+            0.0024731997878953637,
+            0.9590073170902927
+          ]
+        },
+        {
+          "step": 2,
+          "level": 4,
+          "added_band": "S4",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 16,
+          "next_gaussian_input_sigma": 32,
+          "laplacian_definition": "L4 = G4 - G5",
+          "mask_sigma": 16,
+          "contribution_rms": 0.04551247146500255,
+          "remaining_rms": 0.07960436759926337,
+          "remaining_max_abs": 0.824052350455932,
+          "cumulative_range": [
+            9.597550739244738e-05,
+            0.9919729627246089
+          ]
+        },
+        {
+          "step": 3,
+          "level": 3,
+          "added_band": "S3",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 8,
+          "next_gaussian_input_sigma": 16,
+          "laplacian_definition": "L3 = G3 - G4",
+          "mask_sigma": 8,
+          "contribution_rms": 0.03600754244939657,
+          "remaining_rms": 0.0543380006279522,
+          "remaining_max_abs": 0.7073822290041137,
+          "cumulative_range": [
+            -0.00513393726882937,
+            0.9952946792054231
+          ]
+        },
+        {
+          "step": 4,
+          "level": 2,
+          "added_band": "S2",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 4,
+          "next_gaussian_input_sigma": 8,
+          "laplacian_definition": "L2 = G2 - G3",
+          "mask_sigma": 4,
+          "contribution_rms": 0.025620018894964378,
+          "remaining_rms": 0.036442921374789314,
+          "remaining_max_abs": 0.5820481964039876,
+          "cumulative_range": [
+            -0.01058634510072409,
+            0.9975073134517023
+          ]
+        },
+        {
+          "step": 5,
+          "level": 1,
+          "added_band": "S1",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 2,
+          "next_gaussian_input_sigma": 4,
+          "laplacian_definition": "L1 = G1 - G2",
+          "mask_sigma": 2,
+          "contribution_rms": 0.017085848008867616,
+          "remaining_rms": 0.024687911731721805,
+          "remaining_max_abs": 0.41073266810182457,
+          "cumulative_range": [
+            -0.025119213919240782,
+            0.9993599413867317
+          ]
+        },
+        {
+          "step": 6,
+          "level": 0,
+          "added_band": "S0",
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 0,
+          "next_gaussian_input_sigma": 2,
+          "laplacian_definition": "L0 = G0 - G1",
+          "mask_sigma": 0,
+          "contribution_rms": 0.024687911731721805,
+          "remaining_rms": 3.2526112120996276e-17,
+          "remaining_max_abs": 2.220446049250313e-16,
+          "cumulative_range": [
+            -0.0457482464513546,
+            1.0000002738137188
+          ]
+        }
+      ],
+      "fine_to_coarse_steps": [
+        {
+          "level": 0,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 0,
+          "mask_sigma": 0,
+          "laplacian_definition": "L0 = G0 - G1",
+          "contribution_rms": 0.024687911731721805,
+          "remaining_rms": 0.42550356518853455
+        },
+        {
+          "level": 1,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 2,
+          "mask_sigma": 2,
+          "laplacian_definition": "L1 = G1 - G2",
+          "contribution_rms": 0.017085848008867616,
+          "remaining_rms": 0.4232809079497251
+        },
+        {
+          "level": 2,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 4,
+          "mask_sigma": 4,
+          "laplacian_definition": "L2 = G2 - G3",
+          "contribution_rms": 0.025620018894964378,
+          "remaining_rms": 0.41887350920506317
+        },
+        {
+          "level": 3,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 8,
+          "mask_sigma": 8,
+          "laplacian_definition": "L3 = G3 - G4",
+          "contribution_rms": 0.03600754244939657,
+          "remaining_rms": 0.4110049167681793
+        },
+        {
+          "level": 4,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 16,
+          "mask_sigma": 16,
+          "laplacian_definition": "L4 = G4 - G5",
+          "contribution_rms": 0.04551247146500255,
+          "remaining_rms": 0.3965951867206565
+        },
+        {
+          "level": 5,
+          "width": 512,
+          "height": 367,
+          "gaussian_input_sigma": 32,
+          "mask_sigma": 32,
+          "laplacian_definition": "L5 = G5",
+          "contribution_rms": 0.3965951867206565,
+          "remaining_rms": 2.9242203248477186e-17
+        }
+      ],
+      "figure": {
+        "path": "images/stacks_oraple_reconstruction_trace.jpg",
+        "caption": "Coarse-to-fine reconstruction of the same oraple, read left to right and top to bottom. Start with the mixed coarse residual S5, then add S4 through S0. Every panel uses the same fixed [0,1] display clipping with no contrast normalization; all measurements use signed float64 values before clipping.",
+        "columns": 3,
+        "rows": 2,
+        "display_range": [
+          0,
+          1
+        ],
+        "normalization": "none",
+        "level_order": [
+          5,
+          4,
+          3,
+          2,
+          1,
+          0
+        ]
+      },
+      "reconstruction_errors": {
+        "apple_max_abs": 1.1102230246251565e-16,
+        "orange_max_abs": 2.220446049250313e-16,
+        "mixed_sum_max_abs": 3.3306690738754696e-16,
+        "coarse_to_fine_endpoint_max_abs": 2.220446049250313e-16,
+        "coarse_to_fine_endpoint_rms": 3.2526112120996276e-17
+      },
+      "without_residual": {
+        "definition": "Sum of detail contributions S0 through S4; omit S5.",
+        "range": [
+          -0.5370342558765546,
+          0.833998819018707
+        ],
+        "rms_error_to_final": 0.3965951867206565,
+        "mean_rgb": [
+          0.0029678231039992485,
+          0.0025740875854216357,
+          -0.00012305473141523658
+        ]
+      },
+      "coarse_contribution": {
+        "definition": "S5 = M5 G_A5 + (1-M5) G_B5. Omitting it loses the broad intensity/color contribution; detail bands alone do not reconstruct the final image.",
+        "rms": 0.3965951867206565,
+        "range": [
+          0.0024731997878953637,
+          0.9590073170902927
+        ],
+        "mean_rgb": [
+          0.4693567086369271,
+          0.3894456447283072,
+          0.0381075349095718
+        ],
+        "omission_error_matches_contribution_rms": true
+      },
+      "saved_checks": {
+        "source_shape": true,
+        "stack_shape": true,
+        "hard_boundary_jump": true,
+        "multiscale_boundary_jump": true,
+        "multiscale_clip_fraction": true,
+        "multiscale_range": true,
+        "apple_reconstruction": true,
+        "orange_reconstruction": true,
+        "mixed_reconstruction": true
+      }
+    },
+    "blends": [
+      {
+        "id": "oraple",
+        "title": "Apple + orange",
+        "width": 512,
+        "height": 367,
+        "bands": 5,
+        "base_sigma": 2,
+        "initial_mask_sigma": 0,
+        "coarse_image_sigma": 32,
+        "binary_mask_area_pixels": 93952,
+        "mask_kind": "vertical binary seam",
+        "methods": {
+          "hard_cut": {
+            "boundary_jump": 0.17155202024201277,
+            "clip_fraction": 0.0008940735694822888,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.0,
+              1.0000000596046457
+            ]
+          },
+          "feather": {
+            "boundary_jump": 0.012226044981928965,
+            "clip_fraction": 0.016361191530426884,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              -6.427139174108597e-16,
+              1.0000000596046457
+            ]
+          },
+          "multiscale": {
+            "boundary_jump": 0.02790036264624003,
+            "clip_fraction": 0.023483622842870117,
+            "clip_fraction_tolerance_1e6": 0.009354067325158947,
+            "range": [
+              -0.04574824645135461,
+              1.0000002738137188
+            ]
+          }
+        },
+        "saved_checks": {
+          "source_shape": true,
+          "stack_shape": true,
+          "hard_boundary_jump": true,
+          "multiscale_boundary_jump": true,
+          "multiscale_clip_fraction": true,
+          "multiscale_range": true,
+          "apple_reconstruction": true,
+          "orange_reconstruction": true,
+          "mixed_reconstruction": true
+        }
+      },
+      {
+        "id": "custom_cat",
+        "title": "Cat face blending",
+        "width": 512,
+        "height": 512,
+        "registration": {
+          "kind": "two_point_similarity"
+        },
+        "a_matrix": [
+          [
+            0.7373271889400922,
+            -0.0,
+            -291.5668202764977
+          ],
+          [
+            0.0,
+            0.7373271889400922,
+            -264.8387096774194
+          ]
+        ],
+        "b_matrix": [
+          [
+            0.6105447130789398,
+            0.009321293329449462,
+            -312.63792601223423
+          ],
+          [
+            -0.009321293329449462,
+            0.6105447130789398,
+            -202.78415380133998
+          ]
+        ],
+        "bands": 5,
+        "base_sigma": 2,
+        "initial_mask_sigma": 8.0,
+        "coarse_image_sigma": 32,
+        "coarse_mask_nominal_equivalent_sigma": 32.984845004941285,
+        "mask_kind": "polygon",
+        "binary_mask_area_pixels": 80316,
+        "methods": {
+          "hard_cut": {
+            "boundary_jump": 0.20893738342428164,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.0,
+              0.9997242647058824
+            ]
+          },
+          "feather": {
+            "boundary_jump": 0.028927314858565784,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.00025860421045468466,
+              0.9910526478895869
+            ]
+          },
+          "multiscale": {
+            "boundary_jump": 0.030357722288667417,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.0001617487972269041,
+              0.9945824078807697
+            ]
+          }
+        },
+        "decomposition_max_abs_error": 2.220446049250313e-16,
+        "saved_checks": {
+          "hard_cut_boundary_jump": true,
+          "feather_boundary_jump": true,
+          "multiscale_boundary_jump": true,
+          "multiscale_clip_fraction": true,
+          "multiscale_range": true,
+          "decomposition_error": true,
+          "a_matrix": true,
+          "b_matrix": true
+        }
+      },
+      {
+        "id": "custom_planet",
+        "title": "Earth-Moon blending",
+        "width": 512,
+        "height": 512,
+        "registration": {
+          "kind": "ellipse_to_circle",
+          "luminance_threshold": 0.04,
+          "target_center": [
+            256,
+            256
+          ],
+          "target_radius": 220
+        },
+        "a_matrix": [
+          [
+            0.1638159531744351,
+            -0.0004181086953576439,
+            12.049742308642863
+          ],
+          [
+            -0.000418108695357636,
+            0.1623070548689055,
+            14.515398675546521
+          ]
+        ],
+        "b_matrix": [
+          [
+            0.20522297943796922,
+            1.1165163677603344e-05,
+            -9.050199191932052
+          ],
+          [
+            1.1165163677600864e-05,
+            0.2051681512607799,
+            0.2835270043481728
+          ]
+        ],
+        "bands": 6,
+        "base_sigma": 2,
+        "initial_mask_sigma": 8.0,
+        "coarse_image_sigma": 64,
+        "coarse_mask_nominal_equivalent_sigma": 64.4980619863884,
+        "mask_kind": "sinusoidal",
+        "binary_mask_area_pixels": 131283,
+        "methods": {
+          "hard_cut": {
+            "boundary_jump": 0.27175164706895155,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.0,
+              1.0
+            ]
+          },
+          "feather": {
+            "boundary_jump": 0.04215422989009582,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
+            "range": [
+              0.0,
+              0.9986722376237221
+            ]
+          },
+          "multiscale": {
+            "boundary_jump": 0.04235498055038322,
+            "clip_fraction": 0.0492401123046875,
+            "clip_fraction_tolerance_1e6": 0.044481913248697914,
+            "range": [
+              -0.0689528654380708,
+              0.9992668982615535
+            ]
+          }
+        },
+        "decomposition_max_abs_error": 3.3306690738754696e-16,
+        "saved_checks": {
+          "hard_cut_boundary_jump": true,
+          "feather_boundary_jump": true,
+          "multiscale_boundary_jump": true,
+          "multiscale_clip_fraction": true,
+          "multiscale_range": true,
+          "decomposition_error": true,
+          "a_matrix": true,
+          "b_matrix": true
+        }
+      }
+    ],
+    "validation": {
+      "all_saved_checks_passed": true,
+      "three_primary_hybrids": true,
+      "four_controlled_refinement_trials": true,
+      "six_oraple_trace_levels": true,
+      "three_methods_on_three_blends": true,
+      "trace_endpoint_below_1e_12": true,
+      "all_numeric_domains_valid": true
+    }
   }
 }
