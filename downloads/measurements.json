@@ -5,27 +5,35 @@
         "id": "part11",
         "title": "1.1 \u00b7 Convolutions from scratch",
         "paragraphs": [
-          "Both implementations compute true convolution: flip the kernel in both dimensions, zero-pad the image, and accumulate products. The four-loop version iterates over image rows, image columns, kernel rows, and kernel columns. The two-loop version keeps the two kernel loops and multiplies a whole shifted image slice at once. No convolution routine, FFT, window-view helper, or image-processing library is used inside either implementation.",
-          "For a kernel of height Kh and width Kw, padding before each axis is floor(K/2) and padding after it is floor((K\u22121)/2). This asymmetry for even kernels matches SciPy\u2019s \u201csame\u201d crop convention. Testing non-symmetric odd and even kernels is necessary: a symmetric Gaussian alone would not catch an accidental correlation or a one-pixel offset.",
-          "The grayscale selfie is 384 \u00d7 512 pixels; luminance uses 0.299R + 0.587G + 0.114B on RGB values in [0,1]. The 9 \u00d7 9 average removes fine texture. D\u2093 and D\u1d67 emphasize changes across columns and rows respectively; the signed display has one common symmetric color scale. Zero extension visibly darkens a smoothed outer rim and can introduce false derivatives at the frame.",
-          "For a fixed 96 \u00d7 96 selfie crop/resize, the table reports the median of three timed calls after one warm-up. Every method uses float64, zero extension, and \u201csame\u201d output. Maximum error across all comparisons is 8.88e-16. These are measurements on this computer, not universal speed claims. Both manual methods do O(HWKhKw) arithmetic; vectorizing the image operations removes Python\u2019s per-pixel overhead.",
-          "The boundary test uses an all-ones 25 \u00d7 25 image and a normalized 9 \u00d7 9 box. Zero fill produces 25/81 at a corner and 5/9 along an edge; symmetric and periodic extension preserve one everywhere. \u201cSame\u201d describes output size, not how pixels beyond the image are supplied."
+          "Convolution flips the kernel in both dimensions and sums the products of overlapping samples. Both implementations use zero padding outside the image. The four-loop implementation iterates over image rows, image columns, kernel rows, and kernel columns. The two-loop implementation keeps the two kernel loops and operates on a complete shifted image slice at each step. Neither implementation uses a convolution routine, FFT, window-view helper, or image-processing library.",
+          "For a kernel of height Kh and width Kw, let K denote the kernel size along one axis. The padding is floor(K/2) samples before that axis and floor((K\u22121)/2) after it. For even kernels, this asymmetry matches SciPy\u2019s \u201csame\u201d output convention. Comparisons use non-symmetric odd and even kernels because a symmetric Gaussian alone cannot reveal a reversed kernel or a one-pixel offset.",
+          "The self portrait is converted to grayscale using 0.299R + 0.587G + 0.114B, with RGB values in [0, 1]. The working image is 384 \u00d7 512 pixels. A normalized 9 \u00d7 9 box filter and the derivative kernels D\u2093 and D\u1d67 are applied separately.",
+          "The box filter removes fine texture. D\u2093 and D\u1d67 emphasize changes across columns and rows, respectively; their signed responses share a symmetric color scale. Zero padding darkens the outer rim of the smoothed image and can produce derivative responses at the frame.",
+          "The runtime comparison uses a fixed 96 \u00d7 96 image resized from the self portrait. Each method uses float64 values, zero padding, and \u201csame\u201d output. The table reports the median of three calls after one warm-up, with a maximum absolute error of 8.88e-16 across all comparisons.",
+          "For an H \u00d7 W image and a Kh \u00d7 Kw kernel, both manual methods require O(HWKhKw) arithmetic. Operating on image slices removes Python\u2019s per-pixel loop overhead. The reported times describe performance on this computer.",
+          "The boundary comparison uses a constant 25 \u00d7 25 image with value one and a normalized 9 \u00d7 9 box filter. Zero padding gives 25/81 at a corner and 5/9 at the midpoint of an edge; symmetric and periodic extension preserve one everywhere. The \u201csame\u201d setting controls output size, while the boundary setting supplies values outside the image."
         ],
+        "paragraph_headings": {
+          "0": "Convolution method",
+          "2": "Self-portrait results",
+          "4": "Runtime and numerical agreement",
+          "6": "Boundary conditions"
+        },
         "figures": [
           {
             "path": "images/filters_selfie.jpg",
-            "caption": "Self portrait, 9 \u00d7 9 box-filtered portrait, and signed horizontal/vertical derivatives. Red is positive and blue is negative; shared derivative scale clips only the strongest responses for visibility.",
-            "alt": "Self portrait, 9 \u00d7 9 box-filtered portrait, and signed horizontal/vertical derivatives. Red is positive and blue is negative; shared derivative scale clips only the strongest responses for visibility."
+            "caption": "Self portrait, box-filtered image, and signed horizontal and vertical derivatives. Red indicates positive responses and blue indicates negative responses. The shared derivative scale clips the strongest responses for display.",
+            "alt": "Self portrait, box-filtered image, and signed horizontal and vertical derivatives. Red indicates positive responses and blue indicates negative responses. The shared derivative scale clips the strongest responses for display."
           }
         ],
         "tables": [
           {
-            "title": "Runtime and correctness (96 \u00d7 96 float64 input)",
+            "title": "Runtime and numerical agreement \u00b7 96 \u00d7 96 float64 input",
             "columns": [
               "Kernel",
               "Method",
-              "Median ms",
-              "Max |error|"
+              "Median time (ms)",
+              "Max. absolute error"
             ],
             "rows": [
               [
@@ -103,9 +111,9 @@
             ]
           },
           {
-            "title": "Boundary behavior of a constant image",
+            "title": "Boundary values for a constant image",
             "columns": [
-              "SciPy boundary",
+              "SciPy boundary setting",
               "Corner",
               "Top edge midpoint",
               "Center"
@@ -134,7 +142,7 @@
         ],
         "code": [
           {
-            "title": "Input validation, kernel flip, and exact padding",
+            "title": "Input validation, kernel reversal, and padding",
             "text": "def _convolution_inputs(image, kernel):\n    image = np.asarray(image, dtype=np.float64)\n    kernel = np.asarray(kernel, dtype=np.float64)\n    if image.ndim != 2 or kernel.ndim != 2:\n        raise ValueError(\"image and kernel must both be two dimensional\")\n    if not image.size or not kernel.size:\n        raise ValueError(\"image and kernel must be nonempty\")\n    kh, kw = kernel.shape\n    # Before = ceil((K-1)/2); after = floor((K-1)/2).\n    padded = np.pad(image, ((kh // 2, (kh - 1) // 2),\n                            (kw // 2, (kw - 1) // 2)), mode='constant')\n    return image, kernel[::-1, ::-1], padded\n"
           },
           {
@@ -151,21 +159,25 @@
         "id": "part12",
         "title": "1.2 \u00b7 Finite difference operator",
         "paragraphs": [
-          "The horizontal and vertical responses are gx = I \u2217 [1,0,\u22121] and gy = I \u2217 [1,0,\u22121]\u1d40. True convolution flips the stencil, so a left-to-right brightening gives positive gx. Gradient magnitude is \u221a(gx\u00b2 + gy\u00b2); it combines both directions into an unsigned edge-strength map.",
-          "The supplied public cameraman rendering has a thin white border. I crop it to (1, 7, 535, 541) (left, top, right, bottom; right/bottom excluded), then resize the remaining square to 256 \u00d7 256 with Lanczos. All calculations use floating intensities in [0,1], with no per-image normalization before thresholding.",
-          "I compare thresholds 0.08, 0.16, and 0.24, which retain 23.7%, 12.8%, and 9.0% of the evaluated interior. I choose 0.16: it retains the person, camera, and tripod more clearly than 0.24 while rejecting much of the ground texture retained by 0.08. This is a visual tradeoff, not an accuracy score against annotated ground truth.",
-          "The edge predicate is magnitude > T. A seven-pixel frame is excluded from binary maps and edge-fraction measurements throughout Part 1, preventing zero-padding artifacts from being mistaken for scene edges and matching the largest Gaussian derivative support used below. The signed derivative and magnitude images still show their unmasked responses."
+          "Let I be the grayscale image. Its horizontal and vertical derivative responses are gx = I \u2217 [1, 0, \u22121] and gy = I \u2217 [1, 0, \u22121]\u1d40, where \u2217 denotes convolution. Reversing the kernel during convolution makes a left-to-right increase in intensity produce positive gx. The gradient magnitude, \u221a(gx\u00b2 + gy\u00b2), combines the two responses into an unsigned measure of edge strength.",
+          "The supplied cameraman image has a thin white border. The crop (1, 7, 535, 541), given as (left, top, right, bottom) with the right and bottom coordinates excluded, removes that border. The remaining square is resized to 256 \u00d7 256 pixels with Lanczos interpolation. Calculations use floating-point intensities in [0, 1] without further normalization before thresholding.",
+          "A pixel is classified as an edge when its gradient magnitude exceeds the threshold T. A seven-pixel frame is excluded from binary maps and edge-fraction measurements throughout Part 1. This margin excludes responses caused by zero padding and covers the largest Gaussian derivative support used below. The signed derivative and magnitude images show the complete responses.",
+          "Thresholds of 0.08, 0.16, and 0.24 retain 23.7%, 12.8%, and 9.0% of the evaluated interior, respectively. The selected threshold, 0.16, preserves the person, camera, and tripod more clearly than 0.24 while rejecting much of the ground texture retained at 0.08. Selection is based on this visual balance; detection accuracy is not measured against annotated edges."
         ],
+        "paragraph_headings": {
+          "0": "Gradient calculation",
+          "3": "Threshold comparison"
+        },
         "figures": [
           {
             "path": "images/filters_finite_difference.jpg",
-            "caption": "Cameraman finite differences and gradient magnitude. Signed derivatives share [\u22120.65,0.65]; magnitude is displayed over [0,0.65].",
-            "alt": "Cameraman finite differences and gradient magnitude. Signed derivatives share [\u22120.65,0.65]; magnitude is displayed over [0,0.65]."
+            "caption": "Cameraman finite differences and gradient magnitude. Signed derivatives share the range [\u22120.65, 0.65]; magnitude uses [0, 0.65].",
+            "alt": "Cameraman finite differences and gradient magnitude. Signed derivatives share the range [\u22120.65, 0.65]; magnitude uses [0, 0.65]."
           },
           {
             "path": "images/filters_thresholds.jpg",
-            "caption": "Threshold sweep on the original finite-difference magnitude. The middle threshold balances contour continuity and background texture; black outer frame is excluded from evaluation.",
-            "alt": "Threshold sweep on the original finite-difference magnitude. The middle threshold balances contour continuity and background texture; black outer frame is excluded from evaluation."
+            "caption": "Threshold comparison for the finite-difference magnitude. The selected threshold is 0.16. The black outer frame is excluded from evaluation.",
+            "alt": "Threshold comparison for the finite-difference magnitude. The selected threshold is 0.16. The black outer frame is excluded from evaluation."
           }
         ],
         "tables": [
@@ -206,59 +218,68 @@
         "id": "part13",
         "title": "1.3 \u00b7 Derivative of Gaussian",
         "paragraphs": [
-          "I construct a 13 \u00d7 13 Gaussian at \u03c3 = 2 pixels as the outer product of cv2.getGaussianKernel(13,2) with itself. First blur with G, then differentiate with D\u2093/D\u1d67. Equivalently, form Kx = G \u2217 D\u2093 and Ky = G \u2217 D\u1d67 once, then use a single convolution per derivative. These are finite-difference derivatives of the sampled Gaussian; their supports are 13 \u00d7 15 and 15 \u00d7 13 because full kernel convolution preserves the extra two samples.",
-          "Convolution associativity gives I \u2217 (G \u2217 D) = (I \u2217 G) \u2217 D on the same zero-extended infinite image. In a finite implementation, calling \u201csame\u201d after BOTH stages throws away the blurred halo and breaks equality at the frame: the maximum error here is 0.307, although the evaluated interior agrees to 8.95e-16. Retaining the full Gaussian result, applying the derivative, and cropping only once restores agreement over the entire image to 8.95e-16. The discrepancy panel makes this boundary issue explicit.",
-          "Compared with raw finite differences, DoG removes fine grass texture and yields smoother, wider contours. It can merge nearby edges and remove weak detail; Gaussian smoothing is therefore a noise/detail tradeoff. I use T = 0.08 for DoG and T = 0.16 for raw gradients because smoothing lowers response amplitudes. These are separately chosen operating points, not proof that one detector has higher accuracy.",
-          "To test noise sensitivity, I add seeded Gaussian noise with \u03c3 = 0.08 and clip to [0,1]. I compare each noisy gradient with its own clean counterpart, avoiding the mistake of calling intentional smoothing a noise error. Interior vector-gradient residual RMS falls from 0.15226 for finite differences to 0.01030 for DoG (14.8\u00d7 lower). This measures stability for this image/noise realization, not recovery of lost detail."
+          "A 13 \u00d7 13 Gaussian kernel G with \u03c3 = 2 pixels is formed from the outer product of cv2.getGaussianKernel(13, 2) with itself. The image is first smoothed with G, then differentiated with D\u2093 and D\u1d67.",
+          "Alternatively, Kx = G \u2217 D\u2093 and Ky = G \u2217 D\u1d67 combine smoothing and differentiation into one image convolution per direction. These finite-difference derivatives of the sampled Gaussian have supports of 13 \u00d7 15 and 15 \u00d7 13 pixels because full kernel convolution retains the extra two samples.",
+          "Convolution associativity gives I \u2217 (G \u2217 D) = (I \u2217 G) \u2217 D for an image extended with zeros. Applying \u201csame\u201d output after each stage crops the intermediate blurred image and removes values beyond the original frame. These removed values affect the subsequent derivative near the boundary.",
+          "The two successive \u201csame\u201d convolutions differ from a single Gaussian derivative convolution by at most 0.307 over the complete image, while the evaluated interior agrees to 8.95e-16. Retaining the full blurred image, applying the derivative, and cropping once reduces the maximum difference to 8.95e-16. The difference images show where the intermediate crop affects the result.",
+          "The derivative of Gaussian (DoG) suppresses fine grass texture and produces smoother, wider contours than finite differences on the original image. Smoothing can also merge nearby edges and remove weak detail. The selected thresholds are T = 0.08 for DoG and T = 0.16 for the original gradients because smoothing reduces response amplitudes. These thresholds support a visual comparison at separately chosen settings; they do not establish a difference in detection accuracy.",
+          "The noise experiment adds Gaussian noise with \u03c3 = 0.08 using a fixed random seed, then clips intensities to [0, 1]. Each noisy gradient is compared with the same method applied to the clean image. This comparison measures the change caused by noise while retaining each method\u2019s smoothing effect.",
+          "The root mean square (RMS) of the interior vector-gradient residual decreases from 0.15226 for finite differences to 0.01030 for DoG, a factor of 14.8. Gaussian smoothing therefore reduces sensitivity to the added noise in this experiment. The measurement describes this image and noise realization; it does not measure recovery of detail removed by smoothing."
         ],
+        "paragraph_headings": {
+          "0": "Gaussian derivative kernels",
+          "2": "Boundary conditions",
+          "4": "Edge comparison",
+          "5": "Noise sensitivity"
+        },
         "figures": [
           {
             "path": "images/filters_dog_kernels.jpg",
-            "caption": "Gaussian and its sampled derivative kernels. A common signed scale is used for the x/y derivative kernels; the Gaussian uses its own nonnegative scale.",
-            "alt": "Gaussian and its sampled derivative kernels. A common signed scale is used for the x/y derivative kernels; the Gaussian uses its own nonnegative scale."
+            "caption": "Gaussian kernel and its sampled horizontal and vertical derivatives. The derivative kernels share a signed scale; the Gaussian uses a separate nonnegative scale.",
+            "alt": "Gaussian kernel and its sampled horizontal and vertical derivatives. The derivative kernels share a signed scale; the Gaussian uses a separate nonnegative scale."
           },
           {
             "path": "images/filters_smoothed_derivatives.jpg",
-            "caption": "Repeating the finite-difference procedure after Gaussian smoothing: signed horizontal and vertical derivatives share the scale [\u22120.35,0.35], followed by their magnitude on [0,0.35]. These panels use sequential same-sized convolutions with zero padding; the boundary-equivalence comparison below explains the difference from a single DoG convolution.",
-            "alt": "Repeating the finite-difference procedure after Gaussian smoothing: signed horizontal and vertical derivatives share the scale [\u22120.35,0.35], followed by their magnitude on [0,0.35]. These panels use sequential same-sized convolutions with zero padding; the boundary-equivalence comparison below explains the difference from a single DoG convolution."
+            "caption": "Finite differences after Gaussian smoothing, using two successive \u201csame\u201d convolutions with zero padding. Signed derivatives share [\u22120.35, 0.35]; magnitude uses [0, 0.35].",
+            "alt": "Finite differences after Gaussian smoothing, using two successive \u201csame\u201d convolutions with zero padding. Signed derivatives share [\u22120.35, 0.35]; magnitude uses [0, 0.35]."
           },
           {
             "path": "images/filters_dog_comparison.jpg",
-            "caption": "Gaussian derivative results, raw/DoG threshold maps, and the difference between finite implementations. Preserving the intermediate halo is necessary for global equality.",
-            "alt": "Gaussian derivative results, raw/DoG threshold maps, and the difference between finite implementations. Preserving the intermediate halo is necessary for global equality."
+            "caption": "Gaussian derivative results, thresholded edges, and boundary differences. Retaining the complete intermediate blurred image restores agreement between sequential and combined convolution.",
+            "alt": "Gaussian derivative results, thresholded edges, and boundary differences. Retaining the complete intermediate blurred image restores agreement between sequential and combined convolution."
           },
           {
             "path": "images/filters_noise.jpg",
-            "caption": "Controlled noisy cameraman experiment. Gaussian derivatives reject much of the high-frequency noise that triggers raw finite differences.",
-            "alt": "Controlled noisy cameraman experiment. Gaussian derivatives reject much of the high-frequency noise that triggers raw finite differences."
+            "caption": "Cameraman image with added Gaussian noise and the resulting edge maps. Gaussian smoothing suppresses many of the noise responses visible with finite differences.",
+            "alt": "Cameraman image with added Gaussian noise and the resulting edge maps. Gaussian smoothing suppresses many of the noise responses visible with finite differences."
           }
         ],
         "tables": [
           {
-            "title": "Convolution equivalence and noise measurements",
+            "title": "Convolution agreement and noise sensitivity",
             "columns": [
               "Measurement",
               "Value"
             ],
             "rows": [
               [
-                "Same/same vs single DoG \u00b7 max error",
+                "Two successive \u201csame\u201d convolutions vs. DoG \u00b7 maximum error",
                 "0.307441"
               ],
               [
-                "Interior same/same vs single DoG \u00b7 max error",
+                "Two successive \u201csame\u201d convolutions vs. DoG \u00b7 interior maximum error",
                 "8.95e-16"
               ],
               [
-                "Halo-preserved sequential vs single DoG \u00b7 max error",
+                "Full intermediate image vs. DoG \u00b7 maximum error",
                 "8.95e-16"
               ],
               [
-                "Raw gradient noise RMS",
+                "Finite-difference gradient residual RMS",
                 "0.152265"
               ],
               [
-                "DoG gradient noise RMS",
+                "DoG gradient residual RMS",
                 "0.010304"
               ]
             ]
@@ -273,16 +294,22 @@
       },
       {
         "id": "orientation",
-        "title": "Mandatory extension \u00b7 Gradient orientations",
+        "title": "Gradient orientations",
         "paragraphs": [
-          "The orientation implementation calls no arctangent, atan2, or angle routine. It takes r = min(|gy|,|gx|)/max(|gy|,|gx|), then range-reduces r above \u221a2\u22121 using atan(r) = \u03c0/4 + atan((r\u22121)/(r+1)). The reduced argument has magnitude at most \u221a2\u22121, so 18 terms of z \u2212 z\u00b3/3 + z\u2075/5 \u2212 \u2026 converge accurately. Coordinate swaps and component signs restore all four quadrants; a zero gradient is assigned angle zero and displayed black.",
-          "Hue is \u03b8 mod 2\u03c0 divided by 2\u03c0; saturation is one. Value is min(magnitude / p99.5, 1)^0.7, with p99.5 = 0.2386, so stronger gradients appear brighter and faint background responses remain subdued. The colors represent directed intensity change, not the tangent direction of the edge. Since image rows increase downward, 90\u00b0 points down. NumPy atan2 is used only as an independent validation reference: maximum angular error on this figure is 4.44e-16 radians."
+          "Gradient orientation is computed from gx and gy using arithmetic operations without calling an arctangent, atan2, or angle routine. First, r = min(|gy|, |gx|)/max(|gy|, |gx|) gives a ratio between zero and one. For r > \u221a2\u22121, the identity atan(r) = \u03c0/4 + atan((r\u22121)/(r+1)) reduces the magnitude of the series argument to at most \u221a2\u22121.",
+          "The arctangent is approximated with 18 terms of z \u2212 z\u00b3/3 + z\u2075/5 \u2212 \u2026, where z is the reduced argument. Coordinate swaps and the signs of the gradient components determine the quadrant. A zero gradient is assigned orientation zero and displayed black.",
+          "The HSV display maps orientation \u03b8 to hue (\u03b8 mod 2\u03c0)/(2\u03c0), with saturation one. Brightness is min(magnitude / p99.5, 1)^0.7, where p99.5 = 0.2386 is the 99.5th percentile of gradient magnitude in the evaluated interior. Stronger gradients appear brighter, while weak background responses remain subdued. The seven-pixel boundary margin is displayed black.",
+          "Color indicates the direction of increasing intensity, perpendicular to the edge tangent. Image rows increase downward, so 90\u00b0 points down. Comparison with NumPy atan2, used only for validation, gives a maximum angular error of 4.44e-16 radians for this image."
         ],
+        "paragraph_headings": {
+          "0": "Orientation calculation",
+          "2": "Color representation and validation"
+        },
         "figures": [
           {
             "path": "images/filters_orientation.jpg",
-            "caption": "HSV orientation visualization computed without built-in angle functions. Direction follows image coordinates; the seven-pixel border is excluded.",
-            "alt": "HSV orientation visualization computed without built-in angle functions. Direction follows image coordinates; the seven-pixel border is excluded."
+            "caption": "Gradient orientation and direction color wheel. Hue represents direction in image coordinates; brightness represents edge strength. The seven-pixel boundary margin is excluded.",
+            "alt": "Gradient orientation and direction color wheel. Hue represents direction in image coordinates; brightness represents edge strength. The seven-pixel boundary margin is excluded."
           }
         ],
         "tables": [],
@@ -297,41 +324,49 @@
         "id": "part21",
         "title": "2.1 \u00b7 Image sharpening",
         "paragraphs": [
-          "Let B = G \u2217 I be the low-pass image and H = I \u2212 B its high-frequency residual. Unsharp masking forms S = I + \u03b1H = (1 + \u03b1)I \u2212 \u03b1(G \u2217 I). Since I = \u03b4 \u2217 I and convolution is linear, one convolution suffices: S = [(1 + \u03b1)\u03b4 \u2212 \u03b1G] \u2217 I. The kernel has unit sum, so a constant image is preserved when the boundary extension also preserves constants.",
-          "I use a 13 \u00d7 13 Gaussian at \u03c3 = 2 pixels, symmetric boundaries to avoid dark zero-padded borders, and independent float64 RGB-channel processing. All computation keeps signed residuals and unclipped sharpened values until display/export. The figures include the Taj Mahal, an additional original street photograph, and \u03b1 = 0.5, 1, 2. Increasing \u03b1 strengthens existing edges and texture but also amplifies noise, halos, and values outside the display range.",
-          "The single-convolution expression agrees with I + \u03b1(I \u2212 G\u2217I) at \u03b1 = 1 to a maximum error of 1.78e-15 over these images. High-frequency residuals are displayed as 0.5 + 2H, where middle gray means zero; they are not independently normalized. The clipped-sample table counts RGB channel values outside [0,1] before clipping, exposing a cost hidden by an attractive display.",
-          "For the recovery experiment, I deliberately blur the original street image once, then sharpen that blurred image with the same Gaussian at each tested \u03b1. The best tested display result is \u03b1 = 2: clipped RGB MSE changes from 0.001660 after blur to 0.001099 after sharpening, and PSNR changes from 27.80 to 29.59 dB. The parameter was selected against this reference and is not a general optimum.",
-          "Resharpening makes blurred transitions steeper but does not restore all original detail. If the blur transfer is G(f), the blur-then-unsharp transfer is G(f)[1 + \u03b1 \u2212 \u03b1G(f)], which is generally not one. Frequencies reduced nearly to zero cannot be reconstructed by this finite boost, and clipping can discard additional information. The crop, residual map, and nonzero MSE support this limitation; perceptual crispness alone does not establish recovery."
+          "For an input image I and Gaussian kernel G, let B = G \u2217 I be the low-pass image and H = I \u2212 B its high-frequency residual. Unsharp masking adds a scaled residual: S = I + \u03b1H, where \u03b1 controls the sharpening amount.",
+          "Expanding the residual gives S = (1 + \u03b1)I \u2212 \u03b1(G \u2217 I). The equivalent convolution kernel is K = (1 + \u03b1)\u03b4 \u2212 \u03b1G, where \u03b4 is the unit impulse, so S = K \u2217 I requires one convolution. K sums to one and preserves a constant image when the boundary extension also preserves constants.",
+          "The experiment uses a 13 \u00d7 13 Gaussian with \u03c3 = 2 pixels and symmetric boundary extension. Each RGB channel is processed independently in float64, retaining signed residuals and values outside [0, 1] until display export. Symmetric extension avoids the dark borders introduced by zero padding. The Taj Mahal and an original street photograph are processed at \u03b1 = 0.5, 1, and 2.",
+          "Increasing \u03b1 strengthens existing edges and texture, but also amplifies noise and halos and increases values outside the display range. Residuals are displayed as 0.5 + 2H, with middle gray representing zero and a fixed amplification of two. No independent normalization is applied to these residuals. The table reports the fraction of scalar RGB values outside [0, 1] before display clipping.",
+          "The single-convolution result agrees with S = I + \u03b1(I \u2212 G \u2217 I) at \u03b1 = 1 to a maximum absolute error of 1.78e-15 across the two images. This comparison checks the equivalence of the residual and kernel formulations.",
+          "The recovery experiment first blurs the original street image, then sharpens that blurred image with the same Gaussian at each tested \u03b1. Mean squared error (MSE) is measured over RGB values relative to the original image, both before and after display clipping. For the reference range [0, 1], peak signal-to-noise ratio is PSNR = 10 log10(1/MSE), in decibels.",
+          "Among the tested settings, \u03b1 = 2 gives the lowest clipped RGB MSE. The MSE changes from 0.001660 after blurring to 0.001099 after sharpening, while PSNR changes from 27.80 to 29.59 dB. This parameter is selected against the original reference and applies to this comparison.",
+          "Sharpening makes blurred transitions steeper but leaves differences from the original image. If G(f) is the Gaussian frequency response, the combined blur and sharpening response is G(f)[1 + \u03b1 \u2212 \u03b1G(f)], which generally differs from one. Frequencies strongly attenuated by the blur remain attenuated after this finite amplification, and clipping can remove additional information. The enlarged crop, residual map, and nonzero MSE show that increased edge contrast does not restore all original detail."
         ],
+        "paragraph_headings": {
+          "0": "Unsharp masking",
+          "3": "Sharpening results",
+          "5": "Recovery after blurring"
+        },
         "figures": [
           {
             "path": "images/sharpen_taj_sweep.jpg",
-            "caption": "Taj Mahal: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1].",
-            "alt": "Taj Mahal: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1]."
+            "caption": "Taj Mahal: original image, Gaussian blur, high-frequency residual, and sharpening at \u03b1 = 0.5, 1, and 2. The residual is displayed as 0.5 + 2H. Final display values are clipped to [0, 1].",
+            "alt": "Taj Mahal: original image, Gaussian blur, high-frequency residual, and sharpening at \u03b1 = 0.5, 1, and 2. The residual is displayed as 0.5 + 2H. Final display values are clipped to [0, 1]."
           },
           {
             "path": "images/sharpen_street_sweep.jpg",
-            "caption": "Original street photograph: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1].",
-            "alt": "Original street photograph: original, blurred image, high-frequency residual (mid-gray means zero, amplified 2\u00d7), and unsharp results at \u03b1 = 0.5, 1, 2. RGB channels are filtered separately; final display values are clipped to [0,1]."
+            "caption": "Original street photograph: original image, Gaussian blur, high-frequency residual, and sharpening at \u03b1 = 0.5, 1, and 2. The residual is displayed as 0.5 + 2H. Final display values are clipped to [0, 1].",
+            "alt": "Original street photograph: original image, Gaussian blur, high-frequency residual, and sharpening at \u03b1 = 0.5, 1, and 2. The residual is displayed as 0.5 + 2H. Final display values are clipped to [0, 1]."
           },
           {
             "path": "images/sharpen_blur_recovery.jpg",
-            "caption": "Blur-and-resharpen experiment on the original street photograph. The lower row enlarges exactly the same fixed region from each output. \u03b1 = 2 is the best of the three tested settings by clipped RGB MSE against the original; it does not reproduce the source.",
-            "alt": "Blur-and-resharpen experiment on the original street photograph. The lower row enlarges exactly the same fixed region from each output. \u03b1 = 2 is the best of the three tested settings by clipped RGB MSE against the original; it does not reproduce the source."
+            "caption": "Blur and sharpening of the original street photograph. The lower row shows the same fixed region from each image. \u03b1 = 2 gives the lowest clipped RGB MSE among the three tested settings.",
+            "alt": "Blur and sharpening of the original street photograph. The lower row shows the same fixed region from each image. \u03b1 = 2 gives the lowest clipped RGB MSE among the three tested settings."
           },
           {
             "path": "images/sharpen_recovery_error.jpg",
-            "caption": "Left: horizontal frequency response of the actual discrete Gaussian and the blur-plus-unsharp pipeline. High frequencies that the Gaussian strongly attenuates remain attenuated. Right: residual error against the sharp reference, using the selected recovery setting.",
-            "alt": "Left: horizontal frequency response of the actual discrete Gaussian and the blur-plus-unsharp pipeline. High frequencies that the Gaussian strongly attenuates remain attenuated. Right: residual error against the sharp reference, using the selected recovery setting."
+            "caption": "Left: horizontal frequency response of the discrete Gaussian and the combined blur and sharpening operations. Right: mean absolute RGB error against the sharp reference at the selected setting.",
+            "alt": "Left: horizontal frequency response of the discrete Gaussian and the combined blur and sharpening operations. Right: mean absolute RGB error against the sharp reference at the selected setting."
           }
         ],
         "tables": [
           {
-            "title": "RGB samples outside display range before clipping",
+            "title": "RGB values outside the display range",
             "columns": [
               "Image",
-              "Alpha",
-              "Out-of-range samples"
+              "\u03b1",
+              "Values outside [0, 1]"
             ],
             "rows": [
               [
@@ -367,14 +402,14 @@
             ]
           },
           {
-            "title": "Recovery relative to sharp street reference (RGB in [0,1])",
+            "title": "Recovery relative to the original street image \u00b7 RGB reference in [0, 1]",
             "columns": [
               "Stage",
-              "Alpha",
-              "Float MSE",
-              "Float PSNR dB",
+              "\u03b1",
+              "Unclipped MSE",
+              "Unclipped PSNR (dB)",
               "Clipped MSE",
-              "Clipped PSNR dB"
+              "Clipped PSNR (dB)"
             ],
             "rows": [
               [
@@ -556,61 +591,66 @@
         "id": "part22",
         "title": "2.2 \u00b7 Hybrid images",
         "paragraphs": [
-          "A hybrid adds a blurred source to detail from a second aligned source: H = G_sigmaL * A + gain (B - G_sigmaH * B). Here the people provide the low-frequency image and the cats provide the high-frequency image. The three required examples are Derek + Nutmeg and two custom portrait/cat pairs.",
-          "I began with two-point similarities mapping both eye pairs to (170,210) and (330,210). Exact eye coincidence left the human mouth below the cat muzzle. For Derek and the astronaut, I therefore scale the human image by 0.85 about the common eye midpoint and shift it up 8 pixels: its eye destinations become (182,202) and (318,202), while the cat destinations stay fixed. This compromises exact pupil alignment to reduce the second mouth cue. Each original is resampled once using the composed similarity; there is no nonuniform face warp. Obama retains common eye destinations. Original landmarks and exact 2 x 3 matrices are saved.",
-          "A high-pass sigma of 1.5 removes broad cat shading that leaked into reduced views with sigma 5. The selected low-pass sigma is 8 for Derek and the astronaut, and 6 for Obama. Gains of 2.25, 2.7 and 2.2, respectively, retain fine fur contrast. Stronger low blur or a broader high band reduces some ghosting but weakens the distant human. The six cutoff/gain trials use the selected geometry; supplemental two-by-two controls separately vary geometry and filtering. These are visual choices for these inputs, not universal optima.",
-          "In the selected astronaut example, the 512-pixel view emphasizes cat fur and eye rims, and the 64-pixel view reads as the astronaut. The 128- and 256-pixel views remain mixed. The geometry refinement reduces the extra smile below the muzzle; a 10% gain reduction from the reference setting limits clipping while retaining fine detail. The table reports the actual clipped fractions, which are slightly higher than for the larger, exactly eye-aligned human crop. The controls expose this tradeoff rather than claiming a perfect identity switch.",
-          "To view the effect, open the largest result at normal size, then increase your viewing distance or compare the smaller versions. Keep the displayed image fixed while moving back. Exact distances depend on screen size, zoom and eyesight, so the pixel-size sequence is a repeatable demonstration rather than a calibrated distance test.",
-          "The Gaussian has no sharp cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair this is 0.0234 for the low pass and 0.1249 for the complementary high pass. The filtering itself is spatial convolution; the Fourier plots diagnose the resulting bands.",
-          "All filtering and addition use signed float64 values. Display exports clamp to [0,1] and quantize to 8 bits; the table reports the fraction of scalar channel values clipped. No intermediate band is clipped or contrast-normalized during synthesis. Additional alignment/component views, all other trial grids and the unsuccessful Earth + Moon study are included as supplemental figures."
+          "A hybrid image combines a blurred image with fine detail from a second, aligned image: hybrid = G_sigmaL * A + gain (B - G_sigmaH * B). G_sigma is a Gaussian kernel with standard deviation sigma, and * denotes convolution. A is the human portrait and B is the cat photograph. The three examples are Derek + Nutmeg and two custom portrait/cat pairs.",
+          "The initial alignment maps both pairs of eye centers to (170,210) and (330,210). Each two-point similarity transform combines rotation, uniform scale and translation. Exact eye alignment leaves the human mouth below the cat\u2019s muzzle in the Derek and astronaut pairs.",
+          "For these two pairs, the human image is scaled by 0.85 about the common eye midpoint (250,210) and shifted upward by 8 pixels. Its eye positions become (182,202) and (318,202), while the cat positions remain fixed. This reduces the extra mouth below the muzzle, but the pupils no longer coincide exactly. Obama retains the common eye positions.",
+          "Each original is resampled once with the composed similarity transform, using bilinear interpolation and replicated borders. The face proportions are unchanged. The original landmarks and exact 2 x 3 transformation matrices are saved with the experiment records.",
+          "A high-pass sigma of 1.5 pixels removes more broad cat shading than sigma 5, so less cat structure remains in the reduced views. The selected low-pass sigma is 8 pixels for Derek and the astronaut, and 6 pixels for Obama. Their respective gains are 2.25, 2.7 and 2.2. These gains retain visible fur detail.",
+          "The six filter-width and gain trials keep the selected alignment fixed. More low-pass blur or a broader high-frequency band reduces some double features, but also makes the distant human less clear. The supplementary two-by-two comparisons vary alignment and filtering separately. Settings are selected by visual inspection of these inputs and need not be suitable for other pairs.",
+          "The selected astronaut hybrid emphasizes the cat\u2019s fur and eye outlines at 512 pixels. At 64 pixels, the astronaut\u2019s eyes and smile become clearer. The 128- and 256-pixel views retain recognizable features from both sources.",
+          "The refined human alignment reduces the extra smile below the cat\u2019s muzzle. A 10% gain reduction from the reference setting limits clipping while retaining fine detail. The final clipped fraction is still slightly higher than for the larger human crop with exactly aligned eyes. The comparison therefore remains a partial change in appearance with scale.",
+          "To inspect the effect, view the largest image at normal size and then move farther away, keeping its display size fixed. The reduced versions provide a second comparison. The apparent change depends on screen size, zoom and eyesight, so the pixel-size sequence does not establish a calibrated viewing distance.",
+          "A Gaussian has no sharp frequency cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair, this is 0.0234 for the low pass and 0.1249 for the complementary high pass. Filtering uses spatial convolution; the Fourier plots show the resulting frequency content.",
+          "Each Fourier spectrum displays log(1 + 1000000 |fftshift(fft2(luminance))| / N), where N is the number of image pixels. Division by N permits comparison of differently sized inputs, and both figures use one shared display maximum. No window or mean subtraction is applied before the Fourier transform.",
+          "Filtering uses reflected boundaries, and filtering and addition retain signed float64 values. Intermediate bands are neither clipped nor contrast-normalized. Display exports clamp values to [0,1] and quantize them to 8 bits; the table reports the fraction of scalar channel values clipped. Supplementary figures include the remaining alignment, component and parameter comparisons, together with the unsuccessful Earth + Moon hybrid."
         ],
         "figures": [
           {
             "path": "images/hybrid_astronaut_chelsea_distance.jpg",
-            "caption": "Astronaut + portrait cat: one fixed result at 512, 256, 128 and 64 pixels, reduced with Lanczos. Fine fur and eye rims are visible at the largest size. The astronaut eyes and smile emerge in the smaller views; the intermediate view deliberately exposes the remaining mixture.",
-            "heading": "A custom hybrid across viewing scales",
+            "caption": "Astronaut + portrait cat: the same hybrid at 512, 256, 128 and 64 pixels, reduced with Lanczos. Cat fur and eye outlines are more visible at the largest size; the astronaut\u2019s eyes and smile become clearer at smaller sizes. Both sources remain visible at intermediate sizes.",
+            "heading": "Hybrid appearance at different display sizes",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_astronaut_chelsea_sweep.jpg",
-            "caption": "Astronaut + portrait cat: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
-            "heading": "Choosing cutoffs and detail gain",
+            "caption": "Astronaut + portrait cat: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
+            "heading": "Filter widths and detail gain",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_fourier_sources.jpg",
-            "caption": "Original and aligned inputs for the favorite custom pair. Cyan landmarks are display annotations only; spectra are calculated from the unmarked images. Each spectrum is log(1 + 1000000 |fftshift(fft2(luminance))| / N), using one shared display maximum across both Fourier figures. Division by N normalizes differently sized inputs. No FFT window or mean subtraction is used.",
+            "caption": "Original and aligned astronaut and portrait-cat inputs. Cyan circles show the alignment landmarks; spectra are calculated from the unmarked images. Both Fourier figures use the same logarithmic scale and display maximum.",
             "heading": "Original sources, alignment and Fourier spectra",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_fourier_process.jpg",
-            "caption": "The low-pass spectrum is concentrated centrally; the high pass suppresses central energy and preserves fine structure. Their spatial sum produces the final hybrid. The signed high component is displayed as 0.5 + gain H, with clipping only for display. Each spectrum is log(1 + 1000000 |fftshift(fft2(luminance))| / N), using one shared display maximum across both Fourier figures. Division by N normalizes differently sized inputs. No FFT window or mean subtraction is used.",
+            "caption": "The low-pass spectrum is concentrated near the center. The high-pass component suppresses central energy and retains fine detail. Adding the two components produces the hybrid; the signed high-pass component is displayed as 0.5 + gain H. Both Fourier figures use the same logarithmic scale and display maximum.",
             "heading": "Filtered components and reconstruction",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_derek_nutmeg_summary.jpg",
-            "caption": "Derek + Nutmeg: complete original sources beside the final hybrid at 512, 128 and 64 pixels. The smaller, slightly raised human crop and sigma-low 8 reduce the separate mouth below the cat muzzle. The 512-pixel view retains cat fur and eye detail; the human remains readable at 64 pixels, with a mixed identity at intermediate sizes. A modest gain reduction limits clipping without removing the fine detail.",
+            "caption": "Derek + Nutmeg: original sources and the final hybrid at 512, 128 and 64 pixels. The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. Derek\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
             "heading": "Derek + Nutmeg",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_obama_tabby_summary.jpg",
-            "caption": "Obama + tabby: complete original sources beside the final hybrid at 512, 128 and 64 pixels. The tabby has dense fur texture, so gain 2.2 is sufficient. A higher gain saturates more fur highlights. The human smile returns at reduced size, although the middle-scale image retains whiskers.",
+            "caption": "Obama + tabby: original sources and the final hybrid at 512, 128 and 64 pixels. Gain 2.2 retains the tabby\u2019s fine fur texture. Higher gain clips more bright fur pixels. Obama\u2019s smile becomes clearer at reduced size, while whiskers remain visible at intermediate sizes.",
             "heading": "Obama + tabby",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_derek_nutmeg_alignment.jpg",
-            "caption": "Derek + Nutmeg: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and their saved output destinations. The human eye destinations are (182,202) and (318,202), while the cat remains at (170,210) and (330,210). This is a 0.85 human scale about the original common output-eye midpoint (250,210) followed by an 8-pixel upward shift, composed into one similarity warp. Exact eye coincidence is deliberately relaxed to bring the human mouth closer to the cat muzzle. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
-            "heading": "Derek + Nutmeg \u2014 alignment detail",
+            "caption": "Derek + Nutmeg: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Derek + Nutmeg \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
@@ -623,29 +663,29 @@
           },
           {
             "path": "images/hybrid_derek_nutmeg_refinement.jpg",
-            "caption": "Derek + Nutmeg: a controlled two-by-two comparison of common eye targets versus the saved scale/position refinement, and reference versus selected filter settings. Each cell shows one fixed result at 512, 128 and 64 pixels with identical display clipping and Lanczos reduction. Source photographs and the high-source transform remain fixed. The selected result reduces the second mouth cue while retaining a readable human at 64 pixels; intermediate views remain mixed.",
-            "heading": "Derek + Nutmeg \u2014 geometry and filtering controls",
+            "caption": "Derek + Nutmeg: a two-by-two comparison of the initial and refined human alignment, each with the reference and selected filter settings. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
+            "heading": "Derek + Nutmeg \u00b7 Alignment and filter comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_derek_nutmeg_sweep.jpg",
-            "caption": "Derek + Nutmeg: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
-            "heading": "Derek + Nutmeg \u2014 cutoff and gain trials",
+            "caption": "Derek + Nutmeg: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
+            "heading": "Derek + Nutmeg \u00b7 Filter and gain comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_derek_nutmeg_distance.jpg",
-            "caption": "Derek + Nutmeg: the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
-            "heading": "Derek + Nutmeg \u2014 full scale sequence",
+            "caption": "Derek + Nutmeg: the same hybrid at four display sizes. Intermediate sizes retain features from both sources.",
+            "heading": "Derek + Nutmeg \u00b7 Display-size comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_astronaut_chelsea_alignment.jpg",
-            "caption": "Astronaut + portrait cat: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and their saved output destinations. The human eye destinations are (182,202) and (318,202), while the cat remains at (170,210) and (330,210). This is a 0.85 human scale about the original common output-eye midpoint (250,210) followed by an 8-pixel upward shift, composed into one similarity warp. Exact eye coincidence is deliberately relaxed to bring the human mouth closer to the cat muzzle. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
-            "heading": "Astronaut + portrait cat \u2014 alignment detail",
+            "caption": "Astronaut + portrait cat: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Astronaut + portrait cat \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
@@ -658,15 +698,15 @@
           },
           {
             "path": "images/hybrid_astronaut_chelsea_refinement.jpg",
-            "caption": "Astronaut + portrait cat: a controlled two-by-two comparison of common eye targets versus the saved scale/position refinement, and reference versus selected filter settings. Each cell shows one fixed result at 512, 128 and 64 pixels with identical display clipping and Lanczos reduction. Source photographs and the high-source transform remain fixed. The selected result reduces the second mouth cue while retaining a readable human at 64 pixels; intermediate views remain mixed.",
-            "heading": "Astronaut + portrait cat \u2014 geometry and filtering controls",
+            "caption": "Astronaut + portrait cat: a two-by-two comparison of the initial and refined human alignment, each with the reference and selected filter settings. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
+            "heading": "Astronaut + portrait cat \u00b7 Alignment and filter comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_obama_tabby_alignment.jpg",
-            "caption": "Obama + tabby: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and their saved output destinations. Both sources use the same destination points. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
-            "heading": "Obama + tabby \u2014 alignment detail",
+            "caption": "Obama + tabby: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Obama + tabby \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
@@ -679,22 +719,22 @@
           },
           {
             "path": "images/hybrid_obama_tabby_sweep.jpg",
-            "caption": "Obama + tabby: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
-            "heading": "Obama + tabby \u2014 cutoff and gain trials",
+            "caption": "Obama + tabby: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
+            "heading": "Obama + tabby \u00b7 Filter and gain comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_obama_tabby_distance.jpg",
-            "caption": "Obama + tabby: the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
-            "heading": "Obama + tabby \u2014 full scale sequence",
+            "caption": "Obama + tabby: the same hybrid at four display sizes. Intermediate sizes retain features from both sources.",
+            "heading": "Obama + tabby \u00b7 Display-size comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_earth_moon_alignment.jpg",
-            "caption": "Earth + Moon (limitation study): complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and their saved output destinations. Both sources use the same destination points. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
-            "heading": "Earth + Moon (limitation study) \u2014 alignment detail",
+            "caption": "Earth + Moon (limitation study): original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Earth + Moon (limitation study) \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
@@ -707,28 +747,28 @@
           },
           {
             "path": "images/hybrid_earth_moon_summary.jpg",
-            "caption": "Earth + Moon (limitation study): complete original sources beside the final hybrid at 512, 128 and 64 pixels. Both circular subjects share a silhouette and overlapping structure, so this remains a textured-planet result rather than a convincing identity switch.",
+            "caption": "Earth + Moon (limitation study): original sources and the final hybrid at 512, 128 and 64 pixels. The similar circular outlines and overlapping surface structure produce a textured planetary disk at both viewing scales. The result does not show a clear change in perceived subject.",
             "heading": "Earth + Moon (limitation study)",
             "supplement": true,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_earth_moon_distance.jpg",
-            "caption": "Earth + Moon (limitation study): the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
-            "heading": "Earth + Moon (limitation study) \u2014 full scale sequence",
+            "caption": "Earth + Moon (limitation study): the same hybrid at four display sizes. Intermediate sizes retain features from both sources.",
+            "heading": "Earth + Moon (limitation study) \u00b7 Display-size comparison",
             "supplement": true,
             "group": "hybrids"
           }
         ],
         "tables": [
           {
-            "title": "Selected settings on a 512 x 512 canvas",
+            "title": "Selected settings at 512 x 512 pixels",
             "columns": [
               "Pair",
-              "sigma low (px)",
-              "sigma high (px)",
-              "gain",
-              "values clipped"
+              "Low-pass sigma (px)",
+              "High-pass sigma (px)",
+              "Gain",
+              "Values clipped"
             ],
             "rows": [
               [
@@ -760,59 +800,69 @@
             "title": "Hybrid synthesis",
             "text": "low = gaussian(A, sigma_low)\nhigh = B - gaussian(B, sigma_high)\nhybrid = low + gain * high"
           }
-        ]
+        ],
+        "paragraph_headings": {
+          "0": "Hybrid construction",
+          "1": "Image registration",
+          "4": "Filter settings",
+          "6": "Appearance at different scales",
+          "9": "Frequency analysis",
+          "11": "Numerical representation"
+        }
       },
       {
         "id": "hybrid-color",
-        "title": "Color \u00b7 Which frequency band benefits?",
+        "title": "Color in hybrid images",
         "paragraphs": [
-          "The four controlled variants put color in neither source, only the low-frequency source, only the high-frequency source, or both. Low-only color preserves broad skin and hair hues associated with the distant astronaut. High-only color contributes colored fine edges but cannot recover the cat\u2019s broad coat color after that information has been removed.",
-          "For this pair, low-only color is the most coherent color version: its large color regions agree with the distant face, while grayscale fur remains visible nearby. Both-color adds localized competing hues around some cat edges. The grayscale main examples make the frequency-dependent identity easier to judge without a broad color cue."
+          "Four variants retain color in neither source, only the low-frequency source, only the high-frequency source, or both. Color in the low-frequency source preserves the astronaut\u2019s broad skin and hair regions. Color in the high-frequency source appears around fine cat edges, but the filtering removes the broad coat color.",
+          "For this pair, color in the low-frequency source agrees with the face visible at smaller sizes, while grayscale fur remains visible at larger sizes. Retaining color in both sources adds competing hues around some cat edges. The main examples use grayscale so that the change in visible subject can be assessed without this broad color difference."
         ],
         "figures": [
           {
             "path": "images/hybrid_color_comparison.jpg",
-            "caption": "The four variants use identical geometry, sigma values and detail gain. Only conversion to luminance changes (weights 0.2126, 0.7152, 0.0722). Broad human skin and hair colors survive the low pass; high-only color is confined to edges and fine cat detail.",
-            "heading": "Color in the low band, high band, or both",
+            "caption": "Four color variants with identical alignment, filter widths and gain. Luminance conversion uses weights 0.2126, 0.7152 and 0.0722. Color in the low-frequency source preserves broad skin and hair regions; color in the high-frequency source remains mainly around cat edges and fur.",
+            "heading": "Color by frequency band",
             "supplement": false,
             "group": "hybrids"
           }
         ],
         "tables": [],
-        "code": []
+        "code": [],
+        "paragraph_headings": {}
       },
       {
         "id": "part23",
         "title": "2.3 \u00b7 Gaussian and Laplacian stacks",
         "paragraphs": [
-          "The apple and orange are the supplied course originals, burt_apple.png and burt_orange.png. Each 740 x 530 input is resized once to 512 x 367 pixels with area interpolation, retaining its aspect ratio to the nearest output pixel. This common working size keeps the experiment efficient without stretching the fruit into a square.",
-          "A stack keeps every level at full resolution. I set G0 = I, then blur the original independently at sigma = 2, 4, 8, 16 and 32 pixels. The detail bands are Li = Gi - G(i+1) for i = 0,...,4; L5 = G5 is the coarse residual. Independent blurring makes the effective sigma of each level explicit. No downsampling occurs between stack levels, and no built-in pyramid routine is used.",
-          "The residual is essential: summing only the detail bands would recover I - G5 and lose the large-scale brightness and color. With the residual, the sum telescopes exactly to I up to floating-point rounding. The apple and orange reconstruction errors are reported below.",
-          "The mask follows the same Gaussian schedule. Each output level is Si = Mi LAi + (1 - Mi) LBi, including the residual level, and the final image is the sum of all Si. A is selected wherever the initial mask is white. This separates fine texture transitions from broad illumination and color transitions."
+          "The supplied apple and orange images are burt_apple.png and burt_orange.png. Each 740 \u00d7 530 input is resized once to a common working size of 512 \u00d7 367 pixels using area interpolation. This reduces the computational cost while preserving the original aspect ratio to the nearest output pixel.",
+          "A Gaussian stack retains the same image dimensions at every level. G0 = I is the original image; G1 through G5 are formed by independently blurring I at \u03c3 = 2, 4, 8, 16, and 32 pixels. Each \u03c3 therefore describes the smoothing relative to the original image. The stack is constructed explicitly without downsampling or a built-in pyramid routine.",
+          "The Laplacian detail bands are Li = Gi \u2212 G(i+1) for i = 0, \u2026, 4, and L5 = G5 is the coarse residual. Summing the detail bands gives I \u2212 G5; including the residual restores the large-scale brightness and color. The complete sum reconstructs I up to floating-point rounding. The table reports the reconstruction error for each input and for the blended image.",
+          "A binary mask selects apple on the left and orange on the right. Its Gaussian stack uses the same smoothing scales as the image stacks. At level i, Mi is the mask and LAi and LBi are the apple and orange Laplacian bands; the combined band is Si = Mi LAi + (1 \u2212 Mi) LBi. This expression also applies to the coarse residual, and summing all Si gives the final image.",
+          "The mask has a sharp transition at the finest level and progressively wider transitions at coarser levels. Fine texture and broad changes in brightness and color are therefore blended over different spatial ranges. The contribution figure shows selected detail levels and the complete reconstruction."
         ],
         "figures": [
           {
             "path": "images/stacks_apple.jpg",
-            "caption": "Apple: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays preserve the working resolution of 512 x 367 pixels (width x height). Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+            "caption": "Apple: Gaussian stack above and Laplacian stack below, including the coarse residual. Every level retains the working resolution of 512 \u00d7 367 pixels. Signed detail bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
           },
           {
             "path": "images/stacks_orange.jpg",
-            "caption": "Orange: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays preserve the working resolution of 512 x 367 pixels (width x height). Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+            "caption": "Orange: Gaussian stack above and Laplacian stack below, including the coarse residual. Every level retains the working resolution of 512 \u00d7 367 pixels. Signed detail bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
           },
           {
             "path": "images/stacks_mask.jpg",
-            "caption": "The binary left/right mask is blurred at exactly the Gaussian image-stack scales. Fine bands use a sharp transition; coarser bands mix over progressively wider neighborhoods. White selects apple, black selects orange."
+            "caption": "Gaussian stack of the left/right selection mask, using the same scales as the image stacks. The transition widens at coarser levels. White selects apple and black selects orange."
           },
           {
             "path": "images/stacks_oraple_figure342.jpg",
-            "caption": "Reproduction of the Figure 3.42 (a)\u2013(l) layout: rows 1\u20133 show levels 0, 2 and 4, with masked apple, masked orange and their sum in the three columns. Row 4 reconstructs each contribution and the final oraple by summing ALL five detail bands plus the coarse residual. Detail displays share a symmetric contrast scale across each row; row 4 is shown in actual [0,1] intensity."
+            "caption": "Figure 3.42 (a)\u2013(l) layout: rows 1\u20133 show levels 0, 2, and 4; columns show the masked apple, masked orange, and their sum. Row 4 sums all five detail bands and the coarse residual to reconstruct the two contributions and final oraple. Detail bands share a symmetric display scale within each row; reconstructed images use actual [0, 1] intensity."
           }
         ],
         "tables": [
           {
-            "title": "Stack validation",
+            "title": "Reconstruction accuracy",
             "columns": [
-              "Invariant",
+              "Comparison",
               "Maximum absolute error"
             ],
             "rows": [
@@ -825,7 +875,7 @@
                 "2.220e-16"
               ],
               [
-                "Final equals sum of all mixed bands",
+                "Final image vs. sum of mixed bands",
                 "3.331e-16"
               ]
             ]
@@ -833,159 +883,192 @@
         ],
         "code": [
           {
-            "title": "Explicit stacks and reconstruction",
+            "title": "Stack construction and reconstruction",
             "text": "G = [I] + [gaussian(I, 2 * 2**i) for i in range(5)]\nL = [G[i] - G[i+1] for i in range(5)] + [G[-1]]\nS = [M[i] * LA[i] + (1-M[i]) * LB[i] for i in range(6)]\nresult = sum(S)"
           }
-        ]
+        ],
+        "paragraph_headings": {
+          "0": "Input preparation",
+          "1": "Gaussian and Laplacian decomposition",
+          "3": "Mask and reconstruction"
+        }
       },
       {
         "id": "part24",
         "title": "2.4 \u00b7 Multiresolution blending",
         "paragraphs": [
-          "The standard apple/orange blend uses the apple on the left and the orange on the right. A direct binary cut preserves a conspicuous vertical brightness/color discontinuity; mixing corresponding Laplacian bands with Gaussian mask weights spreads that transition according to scale while retaining local texture.",
-          "For these inputs, the mean absolute RGB difference across the two columns adjoining the seam decreases from 0.1716 to 0.0279. This local diagnostic supports the visible seam comparison; it is not a general perceptual-quality score.",
-          "The seam measurement is computed on the unclipped floating-point reconstruction. For display export only, values are clamped to [0,1]; 2.35% of scalar RGB values require this clamp. No clipping occurs within the stack or before reconstruction."
+          "The apple and orange are combined using the same inputs and initial selection mask for both methods. A direct binary cut produces a visible vertical change in brightness and color. Multiresolution blending combines corresponding Laplacian bands with Gaussian mask weights, spreading the transition according to scale while retaining local texture.",
+          "The mean absolute RGB difference between the columns adjoining the seam decreases from 0.1716 for the binary cut to 0.0279 for the multiresolution blend. This local measurement is consistent with the smoother visible transition. It describes the seam discontinuity rather than overall perceptual quality.",
+          "The seam measurement uses the floating-point reconstruction before clipping. Values remain unclipped throughout stack construction and reconstruction, then are limited to [0, 1] for display export. This affects 2.35% of scalar RGB values."
         ],
         "figures": [
           {
             "path": "images/blend_oraple_comparison.jpg",
-            "caption": "Course-provided inputs, selection mask, hard-cut baseline and full-color multiresolution oraple. Both baselines use the same aspect-preserving 512 x 367 input images and the same initial mask; the seam is between columns 255 and 256 (zero-based)."
+            "caption": "Supplied inputs, selection mask, direct binary cut, and multiresolution oraple. Both methods use the same 512 \u00d7 367 images with preserved aspect ratio. The seam lies between zero-based columns 255 and 256."
           }
         ],
         "tables": [],
-        "code": []
+        "code": [],
+        "paragraph_headings": {
+          "0": "Comparison and results"
+        }
       },
       {
         "id": "blend-custom",
-        "title": "Two custom color blends \u00b7 Irregular selections",
+        "title": "Custom blends with irregular masks",
         "paragraphs": [
-          "Tabby disguise transfers the tabby\u2019s central face onto the orange-and-white cat while retaining the destination\u2019s ears, outer whiskers and chest. An irregular 24-vertex polygon follows the crown, temples, cheeks and chin. Moving the contour outward avoids cutting the forehead stripes across their middle. Eye-center alignment puts the face texture in a plausible position. The hard cut exposes the polygon immediately; multiscale blending softens the coat-color transition while keeping the transferred eyes and fur crisp.",
-          "One world, two surfaces is an imaginary globe: Earth\u2019s oceans and clouds transition into lunar craters along an S-shaped boundary. Ellipses fitted to the largest source contours above luminance 0.04 are mapped to a shared circle. This affine registration corrects approximately 1% anisotropy in the photographed Earth outline; the Moon needs almost uniform scaling. Thresholding only measures geometry and does not mask or recolor either photograph. Their shared round outline supports this composite even though their textures did not produce a convincing frequency-switching hybrid. This is an artistic surface fusion, not an astronomical depiction.",
-          "Both examples use the entire registered source photographs. The background is never copied into the other source before filtering. Hard cut, single-scale feathering and multiscale blending receive identical arrays and the same underlying binary selection. The feather baseline uses the exact coarsest stack mask on the full images: its wide transition mixes competing fine details as well as broad colors.",
-          "A binary finest mask can still switch texture abruptly at the cat\u2019s crown or change limb contrast where the globe\u2019s seam reaches its silhouette. For each example I tested initial-mask Gaussian widths of 0, 2, 4, 8, 12 and 16 pixels. Sigma 8 softens these local joins while the tabby eyes, nose and muzzle remain well inside the selection. Larger widths mix more competing fine texture. Only selection weights change; source images and image bands are unchanged. The resulting mask widths are nominally 8, 8.2, 8.9, 11.3, 17.9 and 33.0 pixels for the cat, with 64.5 also used for the globe. The canonical oraple retains a binary finest mask. Controlled crown and lower-limb sweeps are in the supplement.",
-          "The cat uses five detail bands (sigma = 2, 4, 8, 16, 32 pixels); the globe uses six (2, 4, 8, 16, 32, 64 pixels). Both retain their coarse residual. Supplementary sweeps test four, five and six bands without changing other inputs. For the cat, 16 pixels leaves a more conspicuous facial patch; 32 softens the coat boundary without the broader tonal spill of 64. The globe benefits from 64 pixels because its brightness mismatch spans a large fraction of the disk.",
-          "Compared with broad feathering, the cat\u2019s cheek and muzzle retain more definite tabby detail; feathering mixes both faces over a broad transition. At the globe\u2019s boundary, clouds and crater detail remain more localized in the multiscale result. The boundary-jump values below measure adjacent RGB differences across the original binary contour. Feathering gives still smaller jumps because it mixes more image detail; minimizing this number would not select the most convincing photograph. It is a local seam diagnostic, not a perceptual score or proof of physical realism.",
-          "Color helps both concepts. The warm tabby patch remains distinct from white fur and orange ears; grayscale makes these coat regions less distinct. The globe\u2019s blue oceans contrast with the nearly neutral Moon and make the two surfaces easier to identify. I prefer RGB for the final composites; grayscale controls show that seam smoothing also works without this color cue.",
-          "Multiresolution blending cannot fix anatomical or surface mismatches. The cats still differ slightly in muzzle shape and fur direction, and lunar features cannot continue Earth\u2019s clouds naturally. Smoothing the finest mask removes the abrupt limb join, but does not make this imaginary surface physically continuous. Processing stays signed float64; only final image display is clipped to [0,1]."
+          "The cat composite places the tabby\u2019s central face within the orange-and-white cat\u2019s ears, outer whiskers and chest. A 24-vertex polygon follows the crown, temples, cheeks and chin, keeping the forehead stripes inside the selection. A similarity transform aligns the eye centers using uniform scale, rotation and translation.",
+          "The Earth-Moon composite joins oceans and clouds to lunar craters along an S-shaped boundary. Their similar outlines support this composite, although the same photographs do not produce a clear change of subject in the hybrid experiment.",
+          "The largest source contours above luminance 0.04 are fitted with cv2.fitEllipse and mapped affinely to a circle of radius 220 pixels centered at (256,256). This corrects approximately 1% unequal scaling along the Earth image\u2019s two axes; the Moon requires nearly uniform scaling.",
+          "Both examples use the complete registered photographs, sampled with bilinear interpolation and replicated borders. Thresholding measures the planetary outlines only; the transformations sample the original RGB pixels. Exposure, color and backgrounds are unchanged, and no retouching or transfer of one background into the other source precedes blending.",
+          "The hard cut, single-scale feathering and multiresolution blend use identical registered arrays and the same underlying binary selection. Feathering applies the exact coarsest Gaussian mask to the full images, so fine details and broad colors mix over the same wide transition. Multiresolution blending applies the corresponding Gaussian mask to each Laplacian band.",
+          "A binary finest mask leaves an abrupt texture change at the cat\u2019s crown and a contrast change where the planetary boundary meets the outer edge. Initial-mask Gaussian widths of 0, 2, 4, 8, 12 and 16 pixels are compared for each example. Sigma 8 softens these joins while keeping the tabby\u2019s eyes, nose and muzzle inside the selection; larger widths mix fine texture over a wider region.",
+          "Only the selection weights change in this comparison; the source photographs and image detail bands remain fixed. The selected mask widths are nominally 8, 8.2, 8.9, 11.3, 17.9 and 33.0 pixels for the cat, with 64.5 pixels also used for Earth-Moon. The oraple retains a binary finest mask, and the supplementary figures show the crown and lower-edge comparisons.",
+          "The cat blend uses five detail bands with sigma = 2, 4, 8, 16 and 32 pixels. The Earth-Moon blend uses six, adding sigma = 64 pixels, and both include the coarse residual. Supplementary comparisons test four, five and six bands while keeping all other inputs fixed.",
+          "For the cat, a maximum sigma of 16 pixels leaves a more visible facial patch. Sigma 32 softens the coat boundary, while sigma 64 spreads the color transition farther into the surrounding fur. The Earth-Moon blend uses sigma 64 because the brightness mismatch extends across a large part of the disk.",
+          "The direct cut leaves a visible polygon boundary around the cat\u2019s face. Multiresolution blending reduces the coat-color change and retains more distinct tabby detail around the cheek and muzzle than broad feathering, which mixes both faces over a wider region. Clouds and craters also remain more localized at the Earth-Moon boundary. These observations concern the visible transitions in these two examples.",
+          "The boundary-jump measurement is the mean absolute RGB difference between adjacent pixels on opposite sides of the original binary contour. It includes natural image texture as well as the seam. Feathering gives smaller values because it mixes more detail, so a smaller jump alone does not establish a better-looking or physically realistic composite.",
+          "RGB is used for the final composites. The tabby\u2019s coat color separates its face from the white fur and orange ears, while blue oceans distinguish Earth from the nearly neutral Moon. These regions are less distinct in grayscale, although the boundary is still smoothed.",
+          "Multiresolution blending does not correct differences in anatomy or surface structure. The cats retain differences in muzzle shape and fur direction, and lunar features do not continue Earth\u2019s clouds. Smoothing the finest mask reduces the abrupt outer-edge join, but the Earth-Moon composite remains an imaginary surface.",
+          "Processing retains signed float64 values. Only the final display images are clipped to [0,1]."
         ],
         "figures": [
           {
             "path": "images/blend_custom_cat_inputs.jpg",
-            "caption": "Tabby disguise: original photographs and complete registered inputs. The original two eye-center similarities are retained; the contour follows the crown, temples, cheeks and chin in the registered images. Cyan marks show eye centers and their shared destination. The cat inputs use similarity transforms (uniform scale, rotation and translation). Both methods use bilinear interpolation and replicated borders. There is no exposure matching, color correction, background replacement or retouching. Every baseline receives exactly these registered arrays. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Tabby disguise \u00b7 Inputs and registration"
+            "caption": "Cat face blending: original and registered photographs. Cyan circles mark the eye centers and their common output positions.  Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Cat face blending \u00b7 Inputs and registration"
           },
           {
             "path": "images/blend_custom_cat_comparison.jpg",
-            "caption": "Tabby disguise: controlled baselines using the same alignment and underlying binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The initial mask is smoothed at sigma=8 pixels before building the mask stack; image detail bands are unchanged. The irregular facial selection reaches the natural crown and cheek contours. Its initial 8-pixel Gaussian softens the transfer boundary while the narrow image-band masks retain definite tabby eye rims, stripes, nose and muzzle. Broad feathering mixes the competing coat textures over a wider region. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Tabby disguise \u00b7 Mask and fair baselines"
+            "caption": "Cat face blending: three methods using the same registered inputs and underlying binary selection. The initial mask is smoothed at sigma=8 pixels before the mask stack is constructed. The initial 8-pixel Gaussian reduces the abrupt texture change along the selection boundary. Tabby eye outlines, stripes, nose and muzzle remain distinct. Single-scale feathering combines the two coat textures over a wider region.",
+            "heading": "Cat face blending \u00b7 Blending methods"
           },
           {
             "path": "images/blend_custom_cat_detail.jpg",
-            "caption": "Identical boundary crops, x=78:435, y=54:395, with identical display scaling. The forehead stripes taper into the orange crown without the earlier zigzag cutoff, and the cheek transition follows the face outline. The source photographs still differ in coat color and fur direction, but the central tabby features stay clear. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Tabby disguise \u00b7 Boundary detail",
+            "caption": "The same boundary crop, x=78:435, y=54:395, shown at one display scale for all three methods. The forehead stripes meet the orange crown through a gradual transition, and the cheek boundary follows the face outline. Differences in coat color and fur direction remain visible.",
+            "heading": "Cat face blending \u00b7 Boundary detail",
             "supplement": true
           },
           {
             "path": "images/blend_custom_cat_maskstack.jpg",
-            "caption": "Tabby disguise: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512. The initial Gaussian is followed by each stack Gaussian; the labels give nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2). The actual discrete convolutions are used for every weight.",
-            "heading": "Tabby disguise \u00b7 Complete mask stack",
+            "caption": "Cat face blending: Gaussian mask levels, including the coarse residual weight, all at 512 x 512 pixels. Each stack Gaussian acts on the initially smoothed mask. Labels show the nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2); the weights use the discrete convolutions.",
+            "heading": "Cat face blending \u00b7 Complete mask stack",
             "supplement": true
           },
           {
             "path": "images/blend_custom_cat_sweep.jpg",
-            "caption": "Controlled scale sweep: sources, transform, mask and base sigma remain fixed; only the number of detail bands changes. Five bands with base sigma 2 (coarse sigma 32) balance the facial brightness transition and texture. Four bands leave a more definite tonal contour; six spread the coarse color correction farther without improving the localized fur transition. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Tabby disguise \u00b7 Scale selection",
+            "caption": "The number of detail bands varies while the sources, registration, mask and base sigma remain fixed. Five detail bands with base sigma 2 give a coarsest image sigma of 32 pixels. Four bands leave a more visible brightness boundary; six extend the color transition farther from the selected face without a clear improvement in the fur boundary.",
+            "heading": "Cat face blending \u00b7 Number of detail bands",
             "supplement": true
           },
           {
             "path": "images/blend_custom_cat_mask_sweep.jpg",
-            "caption": "Controlled initial-mask sweep, x=90:423, y=55:178. Sources, alignment and all 5 image detail bands stay fixed. An initial mask sigma of 8 pixels softens the crown and cheek transfer boundary while keeping both eyes, nose and muzzle well inside the tabby selection. Sigma 4 leaves a more definite fur cutoff; sigma 12 and 16 mix a wider strip of the two coats without a comparable improvement in the central features. This changes selection weights only, not the source photographs or the reconstructed pixels after blending. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Tabby disguise \u00b7 Finest-mask control",
+            "caption": "Initial-mask comparison, x=90:423, y=55:178. Sources, alignment and all 5 image detail bands stay fixed. An initial mask sigma of 8 pixels reduces the abrupt texture change at the crown and cheeks. The eyes, nose and muzzle remain within the tabby selection. Sigma 4 leaves a more visible fur boundary; sigma 12 and 16 combine a wider region of the two coats. Only the selection weights vary.",
+            "heading": "Cat face blending \u00b7 Initial mask width",
             "supplement": true
           },
           {
             "path": "images/blend_custom_cat_process.jpg",
-            "caption": "Favorite blend, Tabby disguise: rows 1\u20133 show masked A, masked B and their sum at Laplacian levels 0, 2 and 4. The final row reconstructs each contribution and the result using ALL detail bands plus the coarse residual, following Burt\u2013Adelson Figure 10. Each detail row uses one shared symmetric contrast scale; reconstructed rows retain actual intensity. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "Favorite blend \u00b7 Twelve-panel multiscale process"
+            "caption": "Cat face blending: rows 1\u20133 show masked A, masked B and their sum at Laplacian levels 0, 2 and 4. The final row reconstructs each contribution and the result using all detail bands plus the coarse residual, following Burt\u2013Adelson Figure 10. Each detail row uses one shared symmetric contrast scale; reconstructed rows retain actual intensity.",
+            "heading": "Cat face blending \u00b7 Multiresolution contributions"
           },
           {
             "path": "images/blend_custom_planet_inputs.jpg",
-            "caption": "One world, two surfaces: original photographs and complete registered inputs. Measured disk ellipses are mapped to a common circle of radius 220 pixels centered at (256,256). Earth needs a small anisotropic correction; the Moon's measured outline is almost circular. Cyan outlines show fitted source ellipses and the common target circle. The largest external contour above luminance 0.04 is fitted with cv2.fitEllipse, then mapped affinely to a circle. The differential axis scaling is 1.06% for Earth and 0.03% for the Moon. Thresholding measures geometry only; the warp samples the original RGB pixels. Both methods use bilinear interpolation and replicated borders. There is no exposure matching, color correction, background replacement or retouching. Every baseline receives exactly these registered arrays. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "One world, two surfaces \u00b7 Inputs and registration"
+            "caption": "Earth-Moon blending: original and registered photographs. Cyan outlines mark the fitted source ellipses and target circle. The larger axis scale factor exceeds the smaller by 1.06% for Earth and 0.03% for the Moon.  Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Earth-Moon blending \u00b7 Inputs and registration"
           },
           {
             "path": "images/blend_custom_planet_comparison.jpg",
-            "caption": "One world, two surfaces: controlled baselines using the same alignment and underlying binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The initial mask is smoothed at sigma=8 pixels before building the mask stack; image detail bands are unchanged. A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail. Softening the finest selection mask removes the abrupt silhouette join while keeping cloud and crater structures more localized than in the broad feather mixture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "One world, two surfaces \u00b7 Mask and fair baselines"
+            "caption": "Earth-Moon blending: three methods using the same registered inputs and underlying binary selection. The initial mask is smoothed at sigma=8 pixels before the mask stack is constructed. The brightness discontinuity at the direct cut is reduced. Smoothing the initial mask also reduces the abrupt change at the disk outline. Cloud and crater details remain more localized than with single-scale feathering.",
+            "heading": "Earth-Moon blending \u00b7 Blending methods"
           },
           {
             "path": "images/blend_custom_planet_detail.jpg",
-            "caption": "Identical boundary crops, x=170:350, y=90:435, with identical display scaling. The hard-cut brightness discontinuity is greatly reduced. The softened finest mask also avoids an abrupt change in limb contrast; clouds and lunar features still cannot form a physically continuous texture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "One world, two surfaces \u00b7 Boundary detail",
+            "caption": "The same boundary crop, x=170:350, y=90:435, shown at one display scale for all three methods. The multiresolution result reduces the brightness discontinuity and abrupt change in outline contrast. Cloud and crater textures remain different across the transition.",
+            "heading": "Earth-Moon blending \u00b7 Boundary detail",
             "supplement": true
           },
           {
             "path": "images/blend_custom_planet_maskstack.jpg",
-            "caption": "One world, two surfaces: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512. The initial Gaussian is followed by each stack Gaussian; the labels give nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2). The actual discrete convolutions are used for every weight.",
-            "heading": "One world, two surfaces \u00b7 Complete mask stack",
+            "caption": "Earth-Moon blending: Gaussian mask levels, including the coarse residual weight, all at 512 x 512 pixels. Each stack Gaussian acts on the initially smoothed mask. Labels show the nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2); the weights use the discrete convolutions.",
+            "heading": "Earth-Moon blending \u00b7 Complete mask stack",
             "supplement": true
           },
           {
             "path": "images/blend_custom_planet_sweep.jpg",
-            "caption": "Controlled scale sweep: sources, transform, mask and base sigma remain fixed; only the number of detail bands changes. Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "One world, two surfaces \u00b7 Scale selection",
+            "caption": "The number of detail bands varies while the sources, registration, mask and base sigma remain fixed. Six detail bands give a coarsest image sigma of 64 pixels. This wider transition reduces the large-scale brightness difference between the sources; fewer bands leave a more visible boundary.",
+            "heading": "Earth-Moon blending \u00b7 Number of detail bands",
             "supplement": true
           },
           {
             "path": "images/blend_custom_planet_mask_sweep.jpg",
-            "caption": "Controlled initial-mask sweep, x=220:355, y=423:491. Sources, alignment and all 6 image detail bands stay fixed. A binary finest mask leaves an abrupt change in limb contrast. Sigma 8 smooths that join; larger widths mix a wider strip of fine cloud/crater texture. This changes selection weights only, not the source photographs or the reconstructed pixels after blending. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
-            "heading": "One world, two surfaces \u00b7 Finest-mask control",
+            "caption": "Initial-mask comparison, x=220:355, y=423:491. Sources, alignment and all 6 image detail bands stay fixed. A binary initial mask produces an abrupt change in contrast where the selection meets the disk outline. Sigma 8 reduces this change. Larger widths combine cloud and crater texture over a wider region. Only the selection weights vary.",
+            "heading": "Earth-Moon blending \u00b7 Initial mask width",
             "supplement": true
           },
           {
             "path": "images/blend_custom_color_comparison.jpg",
-            "caption": "Controlled luminance-versus-RGB comparison. Registration, masks and all stack settings remain fixed. Luminance is 0.2126R + 0.7152G + 0.0722B; RGB channels are blended independently. Tabby and Moon derivatives in this figure are distributed under CC BY-SA 3.0; source credits are listed below.",
+            "caption": "Luminance and RGB results with the same registration, masks and stack settings. Luminance is 0.2126R + 0.7152G + 0.0722B; RGB channels are blended independently.",
             "heading": "Color experiment \u00b7 Luminance and RGB"
           }
         ],
         "tables": [
           {
-            "title": "Custom-blend settings and local boundary diagnostic",
+            "title": "Blend settings and mean boundary differences",
             "columns": [
-              "Blend",
-              "Mask",
-              "Bands",
-              "Image sigma max",
-              "Hard jump",
-              "Feather jump",
-              "Stack jump",
-              "Clipped"
+              "Parameter or measurement",
+              "Cat face blending",
+              "Earth-Moon blending"
             ],
             "rows": [
               [
-                "Tabby disguise",
+                "Selection mask",
                 "polygon",
-                "5",
-                "32",
-                "0.2089",
-                "0.0289",
-                "0.0304",
-                "0.00%"
+                "sinusoidal"
               ],
               [
-                "One world, two surfaces",
-                "sinusoidal",
-                "6",
-                "64",
-                "0.2718",
-                "0.0422",
-                "0.0424",
+                "Detail bands",
+                "5",
+                "6"
+              ],
+              [
+                "Maximum image sigma (px)",
+                "32",
+                "64"
+              ],
+              [
+                "Boundary jump: hard cut",
+                "0.2089",
+                "0.2718"
+              ],
+              [
+                "Boundary jump: feathering",
+                "0.0289",
+                "0.0422"
+              ],
+              [
+                "Boundary jump: multiresolution",
+                "0.0304",
+                "0.0424"
+              ],
+              [
+                "Scalar values clipped",
+                "0.00%",
                 "4.92%"
               ]
             ]
           }
         ],
-        "code": []
+        "code": [],
+        "paragraph_headings": {
+          "0": "Image pairs and registration",
+          "4": "Comparison methods",
+          "5": "Initial mask smoothing",
+          "7": "Number of detail bands",
+          "9": "Boundary appearance",
+          "11": "Color comparison",
+          "12": "Limitations"
+        }
       }
     ],
     "measurements": {
@@ -1066,7 +1149,7 @@
               2.25
             ]
           ],
-          "selection_note": "The smaller, slightly raised human crop and sigma-low 8 reduce the separate mouth below the cat muzzle. The 512-pixel view retains cat fur and eye detail; the human remains readable at 64 pixels, with a mixed identity at intermediate sizes. A modest gain reduction limits clipping without removing the fine detail.",
+          "selection_note": "The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. Derek\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
           "low_target_points": [
             [
               182,
@@ -1092,7 +1175,7 @@
             "sigma_high": 1.5,
             "gain": 2.5
           },
-          "alignment_note": "The human eye destinations are (182,202) and (318,202), while the cat remains at (170,210) and (330,210). This is a 0.85 human scale about the original common output-eye midpoint (250,210) followed by an 8-pixel upward shift, composed into one similarity warp. Exact eye coincidence is deliberately relaxed to bring the human mouth closer to the cat muzzle.",
+          "alignment_note": "The human eye centers map to (182,202) and (318,202); the cat eye centers map to (170,210) and (330,210). Relative to the common eye alignment, the human image is scaled by 0.85 about (250,210) and translated upward by 8 pixels. One composed similarity transform applies both changes. The eye centers no longer coincide exactly, but the separation between the human mouth and cat muzzle is reduced.",
           "low_matrix": [
             [
               0.9699332991277579,
@@ -1338,7 +1421,7 @@
               2.7
             ]
           ],
-          "selection_note": "The smaller, slightly raised human crop and sigma-low 8 reduce the separate mouth below the cat muzzle. The 512-pixel view retains cat fur and eye detail; the human remains readable at 64 pixels, with a mixed identity at intermediate sizes. A modest gain reduction limits clipping without removing the fine detail.",
+          "selection_note": "The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. The astronaut\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
           "low_target_points": [
             [
               182,
@@ -1364,7 +1447,7 @@
             "sigma_high": 1.5,
             "gain": 3.0
           },
-          "alignment_note": "The human eye destinations are (182,202) and (318,202), while the cat remains at (170,210) and (330,210). This is a 0.85 human scale about the original common output-eye midpoint (250,210) followed by an 8-pixel upward shift, composed into one similarity warp. Exact eye coincidence is deliberately relaxed to bring the human mouth closer to the cat muzzle.",
+          "alignment_note": "The human eye centers map to (182,202) and (318,202); the cat eye centers map to (170,210) and (330,210). Relative to the common eye alignment, the human image is scaled by 0.85 about (250,210) and translated upward by 8 pixels. One composed similarity transform applies both changes. The eye centers no longer coincide exactly, but the separation between the human mouth and cat muzzle is reduced.",
           "low_matrix": [
             [
               3.0893133711925658,
@@ -1611,7 +1694,7 @@
               2.2
             ]
           ],
-          "selection_note": "The tabby has dense fur texture, so gain 2.2 is sufficient. A higher gain saturates more fur highlights. The human smile returns at reduced size, although the middle-scale image retains whiskers.",
+          "selection_note": "Gain 2.2 retains the tabby\u2019s fine fur texture. Higher gain clips more bright fur pixels. Obama\u2019s smile becomes clearer at reduced size, while whiskers remain visible at intermediate sizes.",
           "low_matrix": [
             [
               0.5479387791004515,
@@ -1757,6 +1840,7 @@
           "low_color": false,
           "high_color": false,
           "supplement": true,
+          "selection_note": "The similar circular outlines and overlapping surface structure produce a textured planetary disk at both viewing scales. The result does not show a clear change in perceived subject.",
           "low_matrix": [
             [
               0.15805243445692885,
@@ -1839,7 +1923,7 @@
       "blends": [
         {
           "id": "custom_cat",
-          "title": "Tabby disguise",
+          "title": "Cat face blending",
           "a_path": "data/custom/tabby.jpg",
           "b_path": "data/custom/portrait_cat.jpg",
           "a_label": "tabby photograph",
@@ -1996,10 +2080,10 @@
             395
           ],
           "favorite": true,
-          "alignment_note": "The original two eye-center similarities are retained; the contour follows the crown, temples, cheeks and chin in the registered images.",
-          "visual_observation": "The irregular facial selection reaches the natural crown and cheek contours. Its initial 8-pixel Gaussian softens the transfer boundary while the narrow image-band masks retain definite tabby eye rims, stripes, nose and muzzle. Broad feathering mixes the competing coat textures over a wider region.",
-          "crop_observation": "The forehead stripes taper into the orange crown without the earlier zigzag cutoff, and the cheek transition follows the face outline. The source photographs still differ in coat color and fur direction, but the central tabby features stay clear.",
-          "selection_note": "Five bands with base sigma 2 (coarse sigma 32) balance the facial brightness transition and texture. Four bands leave a more definite tonal contour; six spread the coarse color correction farther without improving the localized fur transition.",
+          "alignment_note": "Two-point similarity transforms align the eye centers. The selection follows the crown, temples, cheeks and chin in the registered images.",
+          "visual_observation": "The initial 8-pixel Gaussian reduces the abrupt texture change along the selection boundary. Tabby eye outlines, stripes, nose and muzzle remain distinct. Single-scale feathering combines the two coat textures over a wider region.",
+          "crop_observation": "The forehead stripes meet the orange crown through a gradual transition, and the cheek boundary follows the face outline. Differences in coat color and fur direction remain visible.",
+          "selection_note": "Five detail bands with base sigma 2 give a coarsest image sigma of 32 pixels. Four bands leave a more visible brightness boundary; six extend the color transition farther from the selected face without a clear improvement in the fur boundary.",
           "derivative_notice": "Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
           "mask_sigma": 8,
           "trial_mask_sigmas": [
@@ -2017,7 +2101,7 @@
             178
           ],
           "mask_trial_region": "forehead and temples",
-          "mask_selection_note": "An initial mask sigma of 8 pixels softens the crown and cheek transfer boundary while keeping both eyes, nose and muzzle well inside the tabby selection. Sigma 4 leaves a more definite fur cutoff; sigma 12 and 16 mix a wider strip of the two coats without a comparable improvement in the central features.",
+          "mask_selection_note": "An initial mask sigma of 8 pixels reduces the abrupt texture change at the crown and cheeks. The eyes, nose and muzzle remain within the tabby selection. Sigma 4 leaves a more visible fur boundary; sigma 12 and 16 combine a wider region of the two coats.",
           "a_matrix": [
             [
               0.7373271889400922,
@@ -2124,7 +2208,7 @@
         },
         {
           "id": "custom_planet",
-          "title": "One world, two surfaces",
+          "title": "Earth-Moon blending",
           "a_path": "data/custom/earth.jpg",
           "b_path": "data/custom/moon.jpg",
           "a_label": "NASA Blue Marble",
@@ -2163,10 +2247,10 @@
             435
           ],
           "favorite": false,
-          "alignment_note": "Measured disk ellipses are mapped to a common circle of radius 220 pixels centered at (256,256). Earth needs a small anisotropic correction; the Moon's measured outline is almost circular.",
-          "visual_observation": "A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail. Softening the finest selection mask removes the abrupt silhouette join while keeping cloud and crater structures more localized than in the broad feather mixture.",
-          "crop_observation": "The hard-cut brightness discontinuity is greatly reduced. The softened finest mask also avoids an abrupt change in limb contrast; clouds and lunar features still cannot form a physically continuous texture.",
-          "selection_note": "Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary.",
+          "alignment_note": "The measured disk ellipses are mapped to a circle of radius 220 pixels centered at (256,256). The Earth image requires a small difference in horizontal and vertical scaling; the measured Moon outline is nearly circular.",
+          "visual_observation": "The brightness discontinuity at the direct cut is reduced. Smoothing the initial mask also reduces the abrupt change at the disk outline. Cloud and crater details remain more localized than with single-scale feathering.",
+          "crop_observation": "The multiresolution result reduces the brightness discontinuity and abrupt change in outline contrast. Cloud and crater textures remain different across the transition.",
+          "selection_note": "Six detail bands give a coarsest image sigma of 64 pixels. This wider transition reduces the large-scale brightness difference between the sources; fewer bands leave a more visible boundary.",
           "derivative_notice": "Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
           "mask_sigma": 8,
           "trial_mask_sigmas": [
@@ -2183,6 +2267,7 @@
             355,
             491
           ],
+          "mask_selection_note": "A binary initial mask produces an abrupt change in contrast where the selection meets the disk outline. Sigma 8 reduces this change. Larger widths combine cloud and crater texture over a wider region.",
           "a_matrix": [
             [
               0.1638159531744351,

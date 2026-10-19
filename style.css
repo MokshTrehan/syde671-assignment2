@@ -31,3 +31,7 @@
 .viewer-controls label{margin:0}.viewer-presets button:focus-visible,.viewer-controls select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 @media print{#reproduce{break-before:auto}#reproduce>h2{margin-top:6mm}#reflection{break-inside:avoid;margin:4mm 0}#orientation .code-block{margin:4mm 0}#part21 .code-block{margin:3mm 0}}
+
+/* Method headings separate the model, observations and limitations. */
+.method-heading{margin:24px 0 8px}
+@media print{.method-heading{margin:4mm 0 2mm;break-after:avoid}}
