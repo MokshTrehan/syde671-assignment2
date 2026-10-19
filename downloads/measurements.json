@@ -708,18 +708,19 @@
         "id": "part23",
         "title": "2.3 \u00b7 Gaussian and Laplacian stacks",
         "paragraphs": [
-          "A stack keeps every level at full resolution. I set G0 = I, then blur the original independently at sigma = 2, 4, 8, 16 and 32 pixels. The detail bands are Li = Gi - G(i+1) for i = 0,...,4; L5 = G5 is the coarse residual. Independent blurring makes the effective sigma of each level explicit. No image is downsampled and no built-in pyramid routine is used.",
+          "The apple and orange are the supplied course originals, burt_apple.png and burt_orange.png. Each 740 x 530 input is resized once to 512 x 367 pixels with area interpolation, retaining its aspect ratio to the nearest output pixel. This common working size keeps the experiment efficient without stretching the fruit into a square.",
+          "A stack keeps every level at full resolution. I set G0 = I, then blur the original independently at sigma = 2, 4, 8, 16 and 32 pixels. The detail bands are Li = Gi - G(i+1) for i = 0,...,4; L5 = G5 is the coarse residual. Independent blurring makes the effective sigma of each level explicit. No downsampling occurs between stack levels, and no built-in pyramid routine is used.",
           "The residual is essential: summing only the detail bands would recover I - G5 and lose the large-scale brightness and color. With the residual, the sum telescopes exactly to I up to floating-point rounding. The apple and orange reconstruction errors are reported below.",
           "The mask follows the same Gaussian schedule. Each output level is Si = Mi LAi + (1 - Mi) LBi, including the residual level, and the final image is the sum of all Si. A is selected wherever the initial mask is white. This separates fine texture transitions from broad illumination and color transitions."
         ],
         "figures": [
           {
             "path": "images/stacks_apple.jpg",
-            "caption": "Apple: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays have the same 512 x 512 resolution. Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+            "caption": "Apple: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays preserve the working resolution of 512 x 367 pixels (width x height). Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
           },
           {
             "path": "images/stacks_orange.jpg",
-            "caption": "Orange: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays have the same 512 x 512 resolution. Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
+            "caption": "Orange: full-resolution Gaussian stack (top) and Laplacian stack (bottom), including the coarse residual. All six arrays preserve the working resolution of 512 x 367 pixels (width x height). Signed bands use 0.5 + 2.5L for display; the residual uses its actual intensity."
           },
           {
             "path": "images/stacks_mask.jpg",
@@ -744,11 +745,11 @@
               ],
               [
                 "Orange reconstruction",
-                "1.110e-16"
+                "2.220e-16"
               ],
               [
                 "Final equals sum of all mixed bands",
-                "2.220e-16"
+                "3.331e-16"
               ]
             ]
           }
@@ -765,12 +766,13 @@
         "title": "2.4 \u00b7 Multiresolution blending",
         "paragraphs": [
           "The standard apple/orange blend uses the apple on the left and the orange on the right. A direct binary cut preserves a conspicuous vertical brightness/color discontinuity; mixing corresponding Laplacian bands with Gaussian mask weights spreads that transition according to scale while retaining local texture.",
-          "For these inputs, the mean absolute RGB difference across the two columns adjoining the seam decreases from 0.1323 to 0.0174. This local diagnostic supports the visible seam comparison; it is not a general perceptual-quality score."
+          "For these inputs, the mean absolute RGB difference across the two columns adjoining the seam decreases from 0.1716 to 0.0279. This local diagnostic supports the visible seam comparison; it is not a general perceptual-quality score.",
+          "The seam measurement is computed on the unclipped floating-point reconstruction. For display export only, values are clamped to [0,1]; 2.35% of scalar RGB values require this clamp. No clipping occurs within the stack or before reconstruction."
         ],
         "figures": [
           {
             "path": "images/blend_oraple_comparison.jpg",
-            "caption": "Inputs, selection mask, hard-cut baseline and full-color multiresolution oraple. Both baselines use the same preprocessed 512 x 512 input images and the same initial mask."
+            "caption": "Course-provided inputs, selection mask, hard-cut baseline and full-color multiresolution oraple. Both baselines use the same aspect-preserving 512 x 367 input images and the same initial mask; the seam is between columns 255 and 256 (zero-based)."
           }
         ],
         "tables": [],
@@ -1174,24 +1176,37 @@
         }
       ],
       "stacks": {
+        "apple_path": "data/provided/burt_apple.png",
+        "orange_path": "data/provided/burt_orange.png",
+        "source_shape": [
+          530,
+          740,
+          3
+        ],
+        "working_width": 512,
+        "seam_column": 256,
         "apple_reconstruction_max_abs_error": 1.1102230246251565e-16,
-        "orange_reconstruction_max_abs_error": 1.1102230246251565e-16,
-        "final_decomposition_max_abs_error": 2.220446049250313e-16,
+        "orange_reconstruction_max_abs_error": 2.220446049250313e-16,
+        "final_decomposition_max_abs_error": 3.3306690738754696e-16,
         "stack_shape": [
-          512,
+          367,
           512,
           3
         ],
         "bands": 5,
         "coarse_sigma": 32,
-        "clip_fraction": 0.0003217061360677083,
-        "figure342_shared_row_scales": [
-          0.05575399980437635,
-          0.06550218619220113,
-          0.1129539931905236
+        "clip_fraction": 0.023483622842870117,
+        "range": [
+          -0.04574824645135461,
+          1.0000002738137188
         ],
-        "mean_boundary_jump_hard": 0.13225340420925027,
-        "mean_boundary_jump_blend": 0.01737492171908187
+        "figure342_shared_row_scales": [
+          0.1028439759287114,
+          0.1342327361779434,
+          0.16411351886065795
+        ],
+        "mean_boundary_jump_hard": 0.17155202024201277,
+        "mean_boundary_jump_blend": 0.02790036264624003
       },
       "blends": [
         {

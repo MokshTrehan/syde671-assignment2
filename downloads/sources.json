@@ -1,6 +1,6 @@
 {
   "description": "Original inputs for SYDE 671 Assignment 2. Custom means independently selected examples, not claims of personal photography. Online examples are usable inputs rather than synthetic placeholders.",
-  "archive_note": "The supplied hybrid ZIP contains Nutmeg, Derek and two MATLAB files. It does not contain Taj Mahal. The Taj Mahal input is downloaded from the canonical Berkeley course repository.",
+  "archive_note": "The user-supplied hybrid ZIP contains Derek, Nutmeg and two MATLAB starter files. The separate Part 2 image ZIP supplied on October 19, 2026 contains the Taj Mahal image, the original Burt-Adelson apple and orange PNGs, and the 1983 reference paper. Taj and all hybrid files are byte-identical to the inputs already used; the wider 740x530 fruit originals replace the earlier 300x300 Berkeley mirror JPEGs for Parts 2.3-2.4.",
   "assets": [
     {
       "file": "provided/DerekPicture.jpg",
@@ -49,7 +49,7 @@
       "width": 300,
       "height": 300,
       "mode": "RGB",
-      "provenance": "Original teaching image from Berkeley course repository, retrieved without image processing.",
+      "provenance": "Downloaded unchanged from the Berkeley course repository; verified byte-identical to taj.jpg in the user-supplied Part 2 image ZIP on 2026-10-19.",
       "role": "Required filtering / sharpening example"
     },
     {
@@ -69,38 +69,40 @@
       "role": "Required filtering / sharpening example"
     },
     {
-      "file": "provided/apple.jpg",
-      "title": "Apple",
-      "creator": "Course materials / multiresolution spline example",
+      "file": "provided/burt_apple.png",
+      "title": "Apple (supplied Burt-Adelson original)",
+      "creator": "Peter J. Burt and Edward H. Adelson / course materials",
       "license": "Course-distributed educational sample; no general open license stated on course page.",
-      "source_page": "https://cal-cs180.github.io/fa25/hw/proj2/index.html",
-      "download_url": "https://raw.githubusercontent.com/cal-cs180/fa25/main/hw/proj2/files/spline.zip",
-      "acquired_on": "2026-10-02",
-      "sha256": "f1d9903db9c71d52e30b63533dc82ca81b217551acd35791c0c524d66cc02e06",
-      "bytes": 28078,
-      "width": 300,
-      "height": 300,
+      "source_page": null,
+      "download_url": null,
+      "acquired_on": "2026-10-19",
+      "sha256": "39100fc3a96b5bbb534e3fab37406dc673b7cea88c8f3aba3be569ff5201fba4",
+      "bytes": 974670,
+      "width": 740,
+      "height": 530,
       "mode": "RGB",
-      "archive_member": "apple.jpeg",
-      "provenance": "Extracted from canonical course spline.zip and renamed .jpg without re-encoding.",
-      "role": "Required oraple and stack example"
+      "archive_member": "burt_apple.png",
+      "provenance": "Extracted unchanged from user-supplied syde671 assn2 part 2 images.zip; original file preserved. Processing uses an aspect-preserving resize.",
+      "role": "Required oraple and stack example",
+      "source_label": "Supplied Part 2 image package"
     },
     {
-      "file": "provided/orange.jpg",
-      "title": "Orange",
-      "creator": "Course materials / multiresolution spline example",
+      "file": "provided/burt_orange.png",
+      "title": "Orange (supplied Burt-Adelson original)",
+      "creator": "Peter J. Burt and Edward H. Adelson / course materials",
       "license": "Course-distributed educational sample; no general open license stated on course page.",
-      "source_page": "https://cal-cs180.github.io/fa25/hw/proj2/index.html",
-      "download_url": "https://raw.githubusercontent.com/cal-cs180/fa25/main/hw/proj2/files/spline.zip",
-      "acquired_on": "2026-10-02",
-      "sha256": "1f8f8609b82ac59119b0498c21d0bc36ffff6d45aa067ab98e30091c495455e7",
-      "bytes": 28188,
-      "width": 300,
-      "height": 300,
+      "source_page": null,
+      "download_url": null,
+      "acquired_on": "2026-10-19",
+      "sha256": "69031aa9b6b11b3873f0f6da9ad8f0246f0bc4c4b4b71a82ad743674d6e2ea54",
+      "bytes": 899770,
+      "width": 740,
+      "height": 530,
       "mode": "RGB",
-      "archive_member": "orange.jpeg",
-      "provenance": "Extracted from canonical course spline.zip and renamed .jpg without re-encoding.",
-      "role": "Required oraple and stack example"
+      "archive_member": "burt_orange.png",
+      "provenance": "Extracted unchanged from user-supplied syde671 assn2 part 2 images.zip; original file preserved. Processing uses an aspect-preserving resize.",
+      "role": "Required oraple and stack example",
+      "source_label": "Supplied Part 2 image package"
     },
     {
       "file": "provided/selfie.jpg",
