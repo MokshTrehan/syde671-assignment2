@@ -592,22 +592,22 @@
         "title": "2.2 \u00b7 Hybrid images",
         "paragraphs": [
           "A hybrid image combines a blurred image with fine detail from a second, aligned image: hybrid = G_sigmaL * A + gain (B - G_sigmaH * B). G_sigma is a Gaussian kernel with standard deviation sigma, and * denotes convolution. A is the human portrait and B is the cat photograph. The three examples are Derek + Nutmeg and two custom portrait/cat pairs.",
-          "The initial alignment maps both pairs of eye centers to (170,210) and (330,210). Each two-point similarity transform combines rotation, uniform scale and translation. Exact eye alignment leaves the human mouth below the cat\u2019s muzzle in the Derek and astronaut pairs.",
-          "For these two pairs, the human image is scaled by 0.85 about the common eye midpoint (250,210) and shifted upward by 8 pixels. Its eye positions become (182,202) and (318,202), while the cat positions remain fixed. This reduces the extra mouth below the muzzle, but the pupils no longer coincide exactly. Obama retains the common eye positions.",
+          "The initial alignment maps both pairs of eye centers to (170,210) and (330,210). Each two-point similarity transform combines rotation, uniform scale and translation. Exact eye alignment leaves a separate human mouth or chin below the cat muzzle. The broad human smile remains in the low-frequency component, so increasing fur contrast alone does not remove it.",
+          "Each human portrait is scaled about the common eye midpoint (250,210), then shifted vertically, while the cat remains fixed. Derek uses scale 0.70 and shift -12 pixels; the astronaut uses scale 0.70 with no vertical shift; Obama uses scale 0.80 and shift -20 pixels. Their exact output eye coordinates are recorded in the geometry table. This places the lower human face within the cat muzzle, at the cost of coincident eye landmarks.",
           "Each original is resampled once with the composed similarity transform, using bilinear interpolation and replicated borders. The face proportions are unchanged. The original landmarks and exact 2 x 3 transformation matrices are saved with the experiment records.",
-          "A high-pass sigma of 1.5 pixels removes more broad cat shading than sigma 5, so less cat structure remains in the reduced views. The selected low-pass sigma is 8 pixels for Derek and the astronaut, and 6 pixels for Obama. Their respective gains are 2.25, 2.7 and 2.2. These gains retain visible fur detail.",
-          "The six filter-width and gain trials keep the selected alignment fixed. Increasing the low-pass sigma to 14 blurs the astronaut\u2019s eyes and smile in the reduced view. Increasing the high-pass sigma from 1.5 to 3 retains broader cat structure, which competes with the human face. The supplementary comparisons vary alignment and filtering separately. These settings are selected visually for these particular inputs.",
-          "The selected astronaut hybrid emphasizes the cat\u2019s fur and eye outlines at 512 pixels. At 64 pixels, the astronaut\u2019s eyes and smile become clearer. The 128- and 256-pixel views retain recognizable features from both sources.",
-          "The refined human alignment reduces the extra smile below the cat\u2019s muzzle. A 10% gain reduction from the reference setting limits clipping while retaining fine detail. The final clipped fraction is still slightly higher than for the larger human crop with exactly aligned eyes. The comparison therefore remains a partial change in appearance with scale.",
+          "A high-pass sigma of 1.5 or 2 pixels removes more broad cat shading than sigma 5, so less cat structure remains in the reduced views. The selected (low-pass sigma, high-pass sigma, gain) settings are Derek + Nutmeg: (8, 1.5, 2.25); Astronaut + portrait cat: (10, 1.5, 2.7); Obama + tabby: (8, 2, 2). Larger low-pass widths soften the human teeth and chin while retaining broad facial structure.",
+          "The six filter-width and gain trials keep the selected alignment fixed. Increasing the astronaut low-pass sigma to 18 blurs the eyes and smile in the reduced view. Increasing its high-pass sigma from 1.5 to 3 retains broader cat structure, which competes with the human face. The controlled comparisons vary alignment and filtering separately. These settings are selected visually for these particular inputs.",
+          "Reducing human scale and smoothing the low-frequency source suppress the separate lower mouth and chin contour in the near view. Cat eyes and muzzle dominate at 512 and 256 pixels. The astronaut remains recognizable at 64 pixels; the 128-pixel view is mixed.",
+          "On refined geometry, changing from reference to selected filters changes clipping from 3.86% to 2.69%. With selected filters fixed, refining geometry changes clipping from 1.69% to 2.69%. The smaller human image reduces the separate lower mouth and chin, but displaces the eye landmarks. This is a visual tradeoff, not evidence of more accurate landmark registration. Intermediate views remain mixed.",
           "To inspect the effect, view the largest image at normal size and then move farther away, keeping its display size fixed. The reduced versions provide a second comparison. The apparent change depends on screen size, zoom and eyesight, so the pixel-size sequence does not establish a calibrated viewing distance.",
-          "A Gaussian has no sharp frequency cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair, this is 0.0234 for the low pass and 0.1249 for the complementary high pass. Filtering uses spatial convolution; the Fourier plots show the resulting frequency content.",
+          "A Gaussian has no sharp frequency cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair, this is 0.0187 for the low pass and 0.1249 for the complementary high pass. Filtering uses spatial convolution; the Fourier plots show the resulting frequency content.",
           "Each Fourier spectrum displays log(1 + 1000000 |fftshift(fft2(luminance))| / N), where N is the number of image pixels. Division by N permits comparison of differently sized inputs, and both figures use one shared display maximum. No window or mean subtraction is applied before the Fourier transform.",
           "Filtering uses reflected boundaries, and filtering and addition retain signed float64 values. Intermediate bands are neither clipped nor contrast-normalized. Display exports clamp values to [0,1] and quantize them to 8 bits; the table reports the fraction of scalar channel values clipped. Supplementary figures include the remaining alignment, component and parameter comparisons, together with the unsuccessful Earth + Moon hybrid."
         ],
         "figures": [
           {
             "path": "images/hybrid_astronaut_chelsea_distance.jpg",
-            "caption": "Astronaut + portrait cat: the same hybrid at 512, 256, 128 and 64 pixels, reduced with Lanczos. Cat fur and eye outlines are more visible at the largest size; the astronaut\u2019s eyes and smile become clearer at smaller sizes. Both sources remain visible at intermediate sizes.",
+            "caption": "Astronaut + portrait cat: the same hybrid at 512, 256, 128 and 64 pixels, reduced with Lanczos. Reducing human scale and smoothing the low-frequency source suppress the separate lower mouth and chin contour in the near view. Cat eyes and muzzle dominate at 512 and 256 pixels. The astronaut remains recognizable at 64 pixels; the 128-pixel view is mixed.",
             "heading": "Hybrid appearance at different display sizes",
             "supplement": false,
             "group": "hybrids"
@@ -635,14 +635,14 @@
           },
           {
             "path": "images/hybrid_derek_nutmeg_summary.jpg",
-            "caption": "Derek + Nutmeg: original sources and the final hybrid at 512, 128 and 64 pixels. The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. Derek\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
+            "caption": "Derek + Nutmeg: original sources and the final hybrid at 512, 128 and 64 pixels. The smaller human scale brings the lower face into the cat muzzle and reduces the separate chin contour. Nutmeg dominates the 512-pixel view; Derek becomes recognizable at 64 pixels. The 128-pixel view retains features from both sources.",
             "heading": "Derek + Nutmeg",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_obama_tabby_summary.jpg",
-            "caption": "Obama + tabby: original sources and the final hybrid at 512, 128 and 64 pixels. Gain 2.2 retains the tabby\u2019s fine fur texture. Higher gain clips more bright fur pixels. Obama\u2019s smile becomes clearer at reduced size, while whiskers remain visible at intermediate sizes.",
+            "caption": "Obama + tabby: original sources and the final hybrid at 512, 128 and 64 pixels. A smaller, higher human face places the broad smile within the cat muzzle rather than below it. Sigma low 8 softens the teeth patch, while sigma high 2 retains more cat muzzle structure. The tabby dominates at 512 and 256 pixels, and Obama is recognizable at 64 pixels. Intermediate views still contain both identities.",
             "heading": "Obama + tabby",
             "supplement": false,
             "group": "hybrids"
@@ -691,7 +691,7 @@
           },
           {
             "path": "images/hybrid_astronaut_chelsea_components.jpg",
-            "caption": "Astronaut + portrait cat: sigma low = 8 px, sigma high = 1.5 px and gain = 2.7. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "caption": "Astronaut + portrait cat: sigma low = 10 px, sigma high = 1.5 px and gain = 2.7. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
             "heading": "Astronaut + portrait cat \u2014 component detail",
             "supplement": true,
             "group": "hybrids"
@@ -712,8 +712,15 @@
           },
           {
             "path": "images/hybrid_obama_tabby_components.jpg",
-            "caption": "Obama + tabby: sigma low = 6 px, sigma high = 1.5 px and gain = 2.2. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "caption": "Obama + tabby: sigma low = 8 px, sigma high = 2 px and gain = 2. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
             "heading": "Obama + tabby \u2014 component detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_refinement.jpg",
+            "caption": "Obama + tabby: a two-by-two comparison of the initial and refined human alignment, each with the reference and selected filter settings. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
+            "heading": "Obama + tabby \u00b7 Alignment and filter comparison",
             "supplement": true,
             "group": "hybrids"
           },
@@ -776,21 +783,50 @@
                 "8",
                 "1.5",
                 "2.25",
-                "2.36%"
+                "3.06%"
               ],
               [
                 "Astronaut + portrait cat",
-                "8",
+                "10",
                 "1.5",
                 "2.7",
-                "2.74%"
+                "2.69%"
               ],
               [
                 "Obama + tabby",
-                "6",
-                "1.5",
-                "2.2",
-                "2.07%"
+                "8",
+                "2",
+                "2",
+                "2.74%"
+              ]
+            ]
+          },
+          {
+            "title": "Human transform relative to the common eye alignment.",
+            "columns": [
+              "Pair",
+              "Scale",
+              "Vertical shift (px)",
+              "Human eye centers (px)"
+            ],
+            "rows": [
+              [
+                "Derek + Nutmeg",
+                "0.70",
+                "-12",
+                "(194, 198); (306, 198)"
+              ],
+              [
+                "Astronaut + portrait cat",
+                "0.70",
+                "0",
+                "(194, 210); (306, 210)"
+              ],
+              [
+                "Obama + tabby",
+                "0.80",
+                "-20",
+                "(186, 190); (314, 190)"
               ]
             ]
           }
@@ -808,6 +844,122 @@
           "6": "Appearance at different scales",
           "9": "Frequency analysis",
           "11": "Numerical representation"
+        },
+        "hybrid_settings": {
+          "derek_nutmeg": {
+            "sigma_low": 8,
+            "sigma_high": 1.5,
+            "gain": 2.25,
+            "target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_target_points": [
+              [
+                194,
+                198
+              ],
+              [
+                306,
+                198
+              ]
+            ],
+            "high_target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
+            "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
+            "selection_note": "The smaller human scale brings the lower face into the cat muzzle and reduces the separate chin contour. Nutmeg dominates the 512-pixel view; Derek becomes recognizable at 64 pixels. The 128-pixel view retains features from both sources."
+          },
+          "astronaut_chelsea": {
+            "sigma_low": 10,
+            "sigma_high": 1.5,
+            "gain": 2.7,
+            "target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_target_points": [
+              [
+                194,
+                210
+              ],
+              [
+                306,
+                210
+              ]
+            ],
+            "high_target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
+            "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
+            "selection_note": "Reducing human scale and smoothing the low-frequency source suppress the separate lower mouth and chin contour in the near view. Cat eyes and muzzle dominate at 512 and 256 pixels. The astronaut remains recognizable at 64 pixels; the 128-pixel view is mixed."
+          },
+          "obama_tabby": {
+            "sigma_low": 8,
+            "sigma_high": 2,
+            "gain": 2,
+            "target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_target_points": [
+              [
+                186,
+                190
+              ],
+              [
+                314,
+                190
+              ]
+            ],
+            "high_target_points": [
+              [
+                170,
+                210
+              ],
+              [
+                330,
+                210
+              ]
+            ],
+            "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
+            "high_half_amplitude_cycles_per_pixel": 0.0936953125646388,
+            "selection_note": "A smaller, higher human face places the broad smile within the cat muzzle rather than below it. Sigma low 8 softens the teeth patch, while sigma high 2 retains more cat muzzle structure. The tabby dominates at 512 and 256 pixels, and Obama is recognizable at 64 pixels. Intermediate views still contain both identities."
+          }
         }
       },
       {
@@ -1149,15 +1301,15 @@
               2.25
             ]
           ],
-          "selection_note": "The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. Derek\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
+          "selection_note": "The smaller human scale brings the lower face into the cat muzzle and reduces the separate chin contour. Nutmeg dominates the 512-pixel view; Derek becomes recognizable at 64 pixels. The 128-pixel view retains features from both sources.",
           "low_target_points": [
             [
-              182,
-              202
+              194,
+              198
             ],
             [
-              318,
-              202
+              306,
+              198
             ]
           ],
           "high_target_points": [
@@ -1175,17 +1327,17 @@
             "sigma_high": 1.5,
             "gain": 2.5
           },
-          "alignment_note": "The human eye centers map to (182,202) and (318,202); the cat eye centers map to (170,210) and (330,210). Relative to the common eye alignment, the human image is scaled by 0.85 about (250,210) and translated upward by 8 pixels. One composed similarity transform applies both changes. The eye centers no longer coincide exactly, but the separation between the human mouth and cat muzzle is reduced.",
+          "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by -12 pixels. The human eye centers map to [[194, 198], [306, 198]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
           "low_matrix": [
             [
-              0.9699332991277579,
-              -0.09071318624935866,
-              -77.77465366854801
+              0.798768599281683,
+              -0.07470497691123654,
+              -19.932067727039538
             ],
             [
-              0.09071318624935866,
-              0.9699332991277579,
-              -158.87101077475631
+              0.07470497691123654,
+              0.798768599281683,
+              -99.18789122626993
             ]
           ],
           "high_matrix": [
@@ -1200,10 +1352,10 @@
               216.7431899948604
             ]
           ],
-          "clip_fraction": 0.02355194091796875,
+          "clip_fraction": 0.030612945556640625,
           "range": [
-            -0.29802048683133725,
-            1.6455294930403812
+            -0.38360847131025777,
+            1.5056737497410075
           ],
           "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
           "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
@@ -1217,54 +1369,54 @@
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.015869140625,
-              "high_to_low_contrast_ratio_512": 0.3135521431181541,
-              "high_to_low_contrast_ratio_128": 0.23611908231850642
+              "clip_fraction": 0.0189056396484375,
+              "high_to_low_contrast_ratio_512": 0.3186054243640332,
+              "high_to_low_contrast_ratio_128": 0.2399244525965295
             },
             {
               "sigma_low": 6,
               "sigma_high": 1.5,
               "gain": 2.5,
               "selected": false,
-              "clip_fraction": 0.029819488525390625,
-              "high_to_low_contrast_ratio_512": 0.4319641603129988,
-              "high_to_low_contrast_ratio_128": 0.1626862378181705
+              "clip_fraction": 0.037761688232421875,
+              "high_to_low_contrast_ratio_512": 0.43915653427320006,
+              "high_to_low_contrast_ratio_128": 0.165395433874129
             },
             {
               "sigma_low": 8,
               "sigma_high": 1.5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.009296417236328125,
-              "high_to_low_contrast_ratio_512": 0.17656030420700472,
-              "high_to_low_contrast_ratio_128": 0.06649799260119933
+              "clip_fraction": 0.010372161865234375,
+              "high_to_low_contrast_ratio_512": 0.17945785594498978,
+              "high_to_low_contrast_ratio_128": 0.06758934862745397
             },
             {
               "sigma_low": 14,
               "sigma_high": 1.5,
               "gain": 2.25,
               "selected": false,
-              "clip_fraction": 0.01702880859375,
-              "high_to_low_contrast_ratio_512": 0.4236816913261736,
-              "high_to_low_contrast_ratio_128": 0.159575023770986
+              "clip_fraction": 0.02352142333984375,
+              "high_to_low_contrast_ratio_512": 0.43017293815174346,
+              "high_to_low_contrast_ratio_128": 0.1620198272558559
             },
             {
               "sigma_low": 8,
               "sigma_high": 3,
               "gain": 2.25,
               "selected": false,
-              "clip_fraction": 0.03865814208984375,
-              "high_to_low_contrast_ratio_512": 0.5715568272546759,
-              "high_to_low_contrast_ratio_128": 0.3531302060506482
+              "clip_fraction": 0.04897308349609375,
+              "high_to_low_contrast_ratio_512": 0.5809367129861104,
+              "high_to_low_contrast_ratio_128": 0.3589257310484806
             },
             {
               "sigma_low": 8,
               "sigma_high": 1.5,
               "gain": 2.25,
               "selected": true,
-              "clip_fraction": 0.02355194091796875,
-              "high_to_low_contrast_ratio_512": 0.3972606844657606,
-              "high_to_low_contrast_ratio_128": 0.14962048346295095
+              "clip_fraction": 0.030612945556640625,
+              "high_to_low_contrast_ratio_512": 0.403780175876227,
+              "high_to_low_contrast_ratio_128": 0.15207603452383334
             }
           ],
           "refinement_trials": [
@@ -1309,15 +1461,15 @@
               "gain": 2.5,
               "low_target_points": [
                 [
-                  182,
-                  202
+                  194,
+                  198
                 ],
                 [
-                  318,
-                  202
+                  306,
+                  198
                 ]
               ],
-              "clip_fraction": 0.029819488525390625
+              "clip_fraction": 0.037761688232421875
             },
             {
               "label": "Refined geometry / selected filters",
@@ -1326,23 +1478,23 @@
               "gain": 2.25,
               "low_target_points": [
                 [
-                  182,
-                  202
+                  194,
+                  198
                 ],
                 [
-                  318,
-                  202
+                  306,
+                  198
                 ]
               ],
-              "clip_fraction": 0.02355194091796875
+              "clip_fraction": 0.030612945556640625
             }
           ],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.3972606844657606,
-            "selected_128": 0.14962048346295095,
-            "baseline_512": 0.3135521431181541,
-            "baseline_128": 0.23611908231850642
+            "selected_512": 0.403780175876227,
+            "selected_128": 0.15207603452383334,
+            "baseline_512": 0.3186054243640332,
+            "baseline_128": 0.2399244525965295
           }
         },
         {
@@ -1384,7 +1536,7 @@
             512,
             512
           ],
-          "sigma_low": 8,
+          "sigma_low": 10,
           "sigma_high": 1.5,
           "gain": 2.7,
           "low_color": false,
@@ -1398,38 +1550,38 @@
             [
               6,
               1.5,
-              3.0
+              3
             ],
             [
-              8,
+              10,
               1.5,
               1
             ],
             [
-              14,
+              18,
               1.5,
               2.7
             ],
             [
-              8,
+              10,
               3,
               2.7
             ],
             [
-              8,
+              10,
               1.5,
               2.7
             ]
           ],
-          "selection_note": "The adjusted human scale and position reduce the additional mouth visible below the cat muzzle. Cat fur and eye outlines remain visible at 512 pixels. The astronaut\u2019s facial structure becomes clearer at 64 pixels; intermediate sizes retain features from both sources.",
+          "selection_note": "Reducing human scale and smoothing the low-frequency source suppress the separate lower mouth and chin contour in the near view. Cat eyes and muzzle dominate at 512 and 256 pixels. The astronaut remains recognizable at 64 pixels; the 128-pixel view is mixed.",
           "low_target_points": [
             [
-              182,
-              202
+              194,
+              210
             ],
             [
-              318,
-              202
+              306,
+              210
             ]
           ],
           "high_target_points": [
@@ -1447,17 +1599,17 @@
             "sigma_high": 1.5,
             "gain": 3.0
           },
-          "alignment_note": "The human eye centers map to (182,202) and (318,202); the cat eye centers map to (170,210) and (330,210). Relative to the common eye alignment, the human image is scaled by 0.85 about (250,210) and translated upward by 8 pixels. One composed similarity transform applies both changes. The eye centers no longer coincide exactly, but the separation between the human mouth and cat muzzle is reduced.",
+          "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by 0 pixels. The human eye centers map to [[194, 210], [306, 210]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
           "low_matrix": [
             [
-              3.0893133711925658,
-              0.07021166752710377,
-              -452.22199277232835
+              2.544140423335054,
+              0.05782137325761487,
+              -328.30046463603514
             ],
             [
-              -0.07021166752710377,
-              3.0893133711925658,
-              -95.76768198244707
+              -0.05782137325761487,
+              2.544140423335054,
+              -35.22044398554465
             ]
           ],
           "high_matrix": [
@@ -1472,12 +1624,12 @@
               -202.78415380133998
             ]
           ],
-          "clip_fraction": 0.0274200439453125,
+          "clip_fraction": 0.026885986328125,
           "range": [
-            -0.6242795627023905,
-            1.9541942698860417
+            -0.5950144882134893,
+            1.9047901142079624
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
+          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
           "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
           "final": "images/hybrid_astronaut_chelsea_final.jpg",
           "alignment": "images/hybrid_astronaut_chelsea_alignment.jpg",
@@ -1489,54 +1641,54 @@
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.01239013671875,
-              "high_to_low_contrast_ratio_512": 0.20032760176336825,
-              "high_to_low_contrast_ratio_128": 0.1492628768178219
+              "clip_fraction": 0.013580322265625,
+              "high_to_low_contrast_ratio_512": 0.19446347257739452,
+              "high_to_low_contrast_ratio_128": 0.14489369272240762
             },
             {
               "sigma_low": 6,
               "sigma_high": 1.5,
-              "gain": 3.0,
+              "gain": 3,
               "selected": false,
-              "clip_fraction": 0.03493499755859375,
-              "high_to_low_contrast_ratio_512": 0.34483833447299744,
-              "high_to_low_contrast_ratio_128": 0.10675642295550461
+              "clip_fraction": 0.038593292236328125,
+              "high_to_low_contrast_ratio_512": 0.3359726845549424,
+              "high_to_low_contrast_ratio_128": 0.10401224776567929
             },
             {
-              "sigma_low": 8,
+              "sigma_low": 10,
               "sigma_high": 1.5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.010349273681640625,
-              "high_to_low_contrast_ratio_512": 0.11764174796467945,
-              "high_to_low_contrast_ratio_128": 0.03642096993109914
+              "clip_fraction": 0.008678436279296875,
+              "high_to_low_contrast_ratio_512": 0.11694572170546993,
+              "high_to_low_contrast_ratio_128": 0.03620596593181733
             },
             {
-              "sigma_low": 14,
+              "sigma_low": 18,
               "sigma_high": 1.5,
               "gain": 2.7,
               "selected": false,
-              "clip_fraction": 0.018035888671875,
-              "high_to_low_contrast_ratio_512": 0.3414486611774743,
-              "high_to_low_contrast_ratio_128": 0.10571223447360767
+              "clip_fraction": 0.017765045166015625,
+              "high_to_low_contrast_ratio_512": 0.3442795629544169,
+              "high_to_low_contrast_ratio_128": 0.10658896974636055
             },
             {
-              "sigma_low": 8,
+              "sigma_low": 10,
               "sigma_high": 3,
               "gain": 2.7,
               "selected": false,
-              "clip_fraction": 0.038970947265625,
-              "high_to_low_contrast_ratio_512": 0.42754437577446003,
-              "high_to_low_contrast_ratio_128": 0.24676516462081663
+              "clip_fraction": 0.039264678955078125,
+              "high_to_low_contrast_ratio_512": 0.42501481362781707,
+              "high_to_low_contrast_ratio_128": 0.24530843523175097
             },
             {
-              "sigma_low": 8,
+              "sigma_low": 10,
               "sigma_high": 1.5,
               "gain": 2.7,
               "selected": true,
-              "clip_fraction": 0.0274200439453125,
-              "high_to_low_contrast_ratio_512": 0.3176327195046345,
-              "high_to_low_contrast_ratio_128": 0.09833661902414681
+              "clip_fraction": 0.026885986328125,
+              "high_to_low_contrast_ratio_512": 0.3157534486047688,
+              "high_to_low_contrast_ratio_128": 0.09775610822484518
             }
           ],
           "refinement_trials": [
@@ -1559,7 +1711,7 @@
             },
             {
               "label": "Common eye targets / selected filters",
-              "sigma_low": 8,
+              "sigma_low": 10,
               "sigma_high": 1.5,
               "gain": 2.7,
               "low_target_points": [
@@ -1572,7 +1724,7 @@
                   210
                 ]
               ],
-              "clip_fraction": 0.0190582275390625
+              "clip_fraction": 0.0169219970703125
             },
             {
               "label": "Refined geometry / reference filters",
@@ -1581,42 +1733,42 @@
               "gain": 3.0,
               "low_target_points": [
                 [
-                  182,
-                  202
+                  194,
+                  210
                 ],
                 [
-                  318,
-                  202
+                  306,
+                  210
                 ]
               ],
-              "clip_fraction": 0.03493499755859375
+              "clip_fraction": 0.038593292236328125
             },
             {
               "label": "Refined geometry / selected filters",
-              "sigma_low": 8,
+              "sigma_low": 10,
               "sigma_high": 1.5,
               "gain": 2.7,
               "low_target_points": [
                 [
-                  182,
-                  202
+                  194,
+                  210
                 ],
                 [
-                  318,
-                  202
+                  306,
+                  210
                 ]
               ],
-              "clip_fraction": 0.0274200439453125
+              "clip_fraction": 0.026885986328125
             }
           ],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.3176327195046345,
-            "selected_128": 0.09833661902414681,
-            "baseline_512": 0.20032760176336825,
-            "baseline_128": 0.1492628768178219
+            "selected_512": 0.3157534486047688,
+            "selected_128": 0.09775610822484518,
+            "baseline_512": 0.19446347257739452,
+            "baseline_128": 0.14489369272240762
           },
-          "fourier_common_display_max": 13.176576468658551
+          "fourier_common_display_max": 13.208507136820684
         },
         {
           "id": "obama_tabby",
@@ -1657,9 +1809,9 @@
             512,
             512
           ],
-          "sigma_low": 6,
-          "sigma_high": 1.5,
-          "gain": 2.2,
+          "sigma_low": 8,
+          "sigma_high": 2,
+          "gain": 2,
           "low_color": false,
           "high_color": false,
           "trial_settings": [
@@ -1671,40 +1823,66 @@
             [
               6,
               1.5,
-              1
+              2.2
+            ],
+            [
+              8,
+              1.5,
+              2
             ],
             [
               14,
-              1.5,
-              2.2
+              2,
+              2
             ],
             [
-              6,
-              5,
-              2.2
+              8,
+              3,
+              2
             ],
             [
-              6,
-              1,
-              4
-            ],
-            [
-              6,
-              1.5,
-              2.2
+              8,
+              2,
+              2
             ]
           ],
-          "selection_note": "Gain 2.2 retains the tabby\u2019s fine fur texture. Higher gain clips more bright fur pixels. Obama\u2019s smile becomes clearer at reduced size, while whiskers remain visible at intermediate sizes.",
-          "low_matrix": [
+          "selection_note": "A smaller, higher human face places the broad smile within the cat muzzle rather than below it. Sigma low 8 softens the teeth patch, while sigma high 2 retains more cat muzzle structure. The tabby dominates at 512 and 256 pixels, and Obama is recognizable at 64 pixels. Intermediate views still contain both identities.",
+          "low_target_points": [
             [
-              0.5479387791004515,
-              0.0018765026681522312,
-              -480.37143024687737
+              186,
+              190
             ],
             [
-              -0.0018765026681522312,
-              0.5479387791004515,
-              -98.45763208819562
+              314,
+              190
+            ]
+          ],
+          "high_target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.8 about (250,210) and translates it vertically by -20 pixels. The human eye centers map to [[186, 190], [314, 190]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
+          "refinement_baseline": {
+            "sigma_low": 6,
+            "sigma_high": 1.5,
+            "gain": 2.2
+          },
+          "low_matrix": [
+            [
+              0.43835102328036124,
+              0.0015012021345217849,
+              -334.297144197502
+            ],
+            [
+              -0.0015012021345217849,
+              0.43835102328036124,
+              -56.7661056705565
             ]
           ],
           "high_matrix": [
@@ -1719,13 +1897,13 @@
               -264.8387096774194
             ]
           ],
-          "clip_fraction": 0.02071380615234375,
+          "clip_fraction": 0.027374267578125,
           "range": [
-            -0.40895982939132364,
-            1.550152131329233
+            -0.5416798767844776,
+            1.5751313428218119
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.031231770854879597,
-          "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
+          "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
+          "high_half_amplitude_cycles_per_pixel": 0.0936953125646388,
           "final": "images/hybrid_obama_tabby_final.jpg",
           "alignment": "images/hybrid_obama_tabby_alignment.jpg",
           "components": "images/hybrid_obama_tabby_components.jpg",
@@ -1736,63 +1914,132 @@
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.002704620361328125,
-              "high_to_low_contrast_ratio_512": 0.6854327457557232,
-              "high_to_low_contrast_ratio_128": 0.43765545235085646
+              "clip_fraction": 0.00687408447265625,
+              "high_to_low_contrast_ratio_512": 0.5208898480535208,
+              "high_to_low_contrast_ratio_128": 0.3325985411952508
             },
             {
               "sigma_low": 6,
               "sigma_high": 1.5,
-              "gain": 1,
+              "gain": 2.2,
               "selected": false,
-              "clip_fraction": 0.000652313232421875,
-              "high_to_low_contrast_ratio_512": 0.42801211724265503,
-              "high_to_low_contrast_ratio_128": 0.11082987130118807
+              "clip_fraction": 0.02880096435546875,
+              "high_to_low_contrast_ratio_512": 0.7332262824326727,
+              "high_to_low_contrast_ratio_128": 0.18987209930942817
+            },
+            {
+              "sigma_low": 8,
+              "sigma_high": 1.5,
+              "gain": 2,
+              "selected": false,
+              "clip_fraction": 0.0209197998046875,
+              "high_to_low_contrast_ratio_512": 0.6912446340030004,
+              "high_to_low_contrast_ratio_128": 0.17901097719151474
             },
             {
               "sigma_low": 14,
-              "sigma_high": 1.5,
-              "gain": 2.2,
+              "sigma_high": 2,
+              "gain": 2,
               "selected": false,
-              "clip_fraction": 0.0174560546875,
-              "high_to_low_contrast_ratio_512": 1.1299630701160623,
-              "high_to_low_contrast_ratio_128": 0.2926358441501678
+              "clip_fraction": 0.0214996337890625,
+              "high_to_low_contrast_ratio_512": 0.857872757117886,
+              "high_to_low_contrast_ratio_128": 0.2979820438984245
             },
             {
-              "sigma_low": 6,
-              "sigma_high": 5,
-              "gain": 2.2,
+              "sigma_low": 8,
+              "sigma_high": 3,
+              "gain": 2,
               "selected": false,
-              "clip_fraction": 0.0501556396484375,
-              "high_to_low_contrast_ratio_512": 1.371034571737701,
-              "high_to_low_contrast_ratio_128": 0.8753175510645472
+              "clip_fraction": 0.035369873046875,
+              "high_to_low_contrast_ratio_512": 0.8789034425226268,
+              "high_to_low_contrast_ratio_128": 0.42787078787587496
             },
             {
-              "sigma_low": 6,
-              "sigma_high": 1,
-              "gain": 4,
-              "selected": false,
-              "clip_fraction": 0.04950714111328125,
-              "high_to_low_contrast_ratio_512": 1.333105435318158,
-              "high_to_low_contrast_ratio_128": 0.22622553150552946
-            },
-            {
-              "sigma_low": 6,
-              "sigma_high": 1.5,
-              "gain": 2.2,
+              "sigma_low": 8,
+              "sigma_high": 2,
+              "gain": 2,
               "selected": true,
-              "clip_fraction": 0.02071380615234375,
-              "high_to_low_contrast_ratio_512": 0.9416266579338411,
-              "high_to_low_contrast_ratio_128": 0.24382571690017632
+              "clip_fraction": 0.027374267578125,
+              "high_to_low_contrast_ratio_512": 0.7771665103242139,
+              "high_to_low_contrast_ratio_128": 0.2699383684750139
             }
           ],
-          "refinement_trials": [],
+          "refinement_trials": [
+            {
+              "label": "Common eye targets / reference filters",
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 2.2,
+              "low_target_points": [
+                [
+                  170,
+                  210
+                ],
+                [
+                  330,
+                  210
+                ]
+              ],
+              "clip_fraction": 0.02071380615234375
+            },
+            {
+              "label": "Common eye targets / selected filters",
+              "sigma_low": 8,
+              "sigma_high": 2,
+              "gain": 2,
+              "low_target_points": [
+                [
+                  170,
+                  210
+                ],
+                [
+                  330,
+                  210
+                ]
+              ],
+              "clip_fraction": 0.02040863037109375
+            },
+            {
+              "label": "Refined geometry / reference filters",
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 2.2,
+              "low_target_points": [
+                [
+                  186,
+                  190
+                ],
+                [
+                  314,
+                  190
+                ]
+              ],
+              "clip_fraction": 0.02880096435546875
+            },
+            {
+              "label": "Refined geometry / selected filters",
+              "sigma_low": 8,
+              "sigma_high": 2,
+              "gain": 2,
+              "low_target_points": [
+                [
+                  186,
+                  190
+                ],
+                [
+                  314,
+                  190
+                ]
+              ],
+              "clip_fraction": 0.027374267578125
+            }
+          ],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.9416266579338411,
-            "selected_128": 0.24382571690017632,
-            "baseline_512": 0.6854327457557232,
-            "baseline_128": 0.43765545235085646
+            "selected_512": 0.7771665103242139,
+            "selected_128": 0.2699383684750139,
+            "baseline_512": 0.5208898480535208,
+            "baseline_128": 0.3325985411952508
           }
         },
         {
@@ -2464,13 +2711,13 @@
         "gain": 2.25,
         "low_color": false,
         "high_color": false,
-        "clip_fraction": 0.02355194091796875,
+        "clip_fraction": 0.030612945556640625,
         "range": [
-          -0.29802048683133725,
-          1.6455294930403812
+          -0.38360847131025777,
+          1.5056737497410075
         ],
-        "high_to_low_contrast_ratio_512": 0.3972606844657606,
-        "high_to_low_contrast_ratio_128": 0.14962048346295095,
+        "high_to_low_contrast_ratio_512": 0.403780175876227,
+        "high_to_low_contrast_ratio_128": 0.15207603452383334,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
@@ -2487,13 +2734,13 @@
           "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
           "low_color": false,
           "high_color": false,
-          "clip_fraction": 0.015869140625,
+          "clip_fraction": 0.0189056396484375,
           "range": [
-            -0.12581760838133005,
-            1.2136671735156634
+            -0.2055770554373391,
+            1.1499999830526826
           ],
-          "high_to_low_contrast_ratio_512": 0.3135521431181541,
-          "high_to_low_contrast_ratio_128": 0.23611908231850642,
+          "high_to_low_contrast_ratio_512": 0.3186054243640332,
+          "high_to_low_contrast_ratio_128": 0.2399244525965295,
           "saved_checks": {
             "ratio_512": true,
             "ratio_128": true
@@ -2505,18 +2752,18 @@
         "title": "Astronaut + portrait cat",
         "width": 512,
         "height": 512,
-        "sigma_low": 8,
+        "sigma_low": 10,
         "sigma_high": 1.5,
         "gain": 2.7,
         "low_color": false,
         "high_color": false,
-        "clip_fraction": 0.0274200439453125,
+        "clip_fraction": 0.026885986328125,
         "range": [
-          -0.6242795627023905,
-          1.9541942698860417
+          -0.5950144882134893,
+          1.9047901142079624
         ],
-        "high_to_low_contrast_ratio_512": 0.3176327195046345,
-        "high_to_low_contrast_ratio_128": 0.09833661902414681,
+        "high_to_low_contrast_ratio_512": 0.3157534486047688,
+        "high_to_low_contrast_ratio_128": 0.09775610822484518,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
@@ -2533,13 +2780,13 @@
           "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
           "low_color": false,
           "high_color": false,
-          "clip_fraction": 0.01239013671875,
+          "clip_fraction": 0.013580322265625,
           "range": [
-            -0.2949267864755315,
-            1.358561337614728
+            -0.27161402790941835,
+            1.3137339027716899
           ],
-          "high_to_low_contrast_ratio_512": 0.20032760176336825,
-          "high_to_low_contrast_ratio_128": 0.1492628768178219,
+          "high_to_low_contrast_ratio_512": 0.19446347257739452,
+          "high_to_low_contrast_ratio_128": 0.14489369272240762,
           "saved_checks": {
             "ratio_512": true,
             "ratio_128": true
@@ -2551,18 +2798,18 @@
         "title": "Obama + tabby",
         "width": 512,
         "height": 512,
-        "sigma_low": 6,
-        "sigma_high": 1.5,
-        "gain": 2.2,
+        "sigma_low": 8,
+        "sigma_high": 2,
+        "gain": 2,
         "low_color": false,
         "high_color": false,
-        "clip_fraction": 0.02071380615234375,
+        "clip_fraction": 0.027374267578125,
         "range": [
-          -0.40895982939132364,
-          1.550152131329233
+          -0.5416798767844776,
+          1.5751313428218119
         ],
-        "high_to_low_contrast_ratio_512": 0.9416266579338411,
-        "high_to_low_contrast_ratio_128": 0.24382571690017632,
+        "high_to_low_contrast_ratio_512": 0.7771665103242139,
+        "high_to_low_contrast_ratio_128": 0.2699383684750139,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
@@ -2579,13 +2826,13 @@
           "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
           "low_color": false,
           "high_color": false,
-          "clip_fraction": 0.002704620361328125,
+          "clip_fraction": 0.00687408447265625,
           "range": [
-            -0.04227652655504638,
-            1.2203893641678283
+            -0.16585682145294647,
+            1.2169677574486368
           ],
-          "high_to_low_contrast_ratio_512": 0.6854327457557232,
-          "high_to_low_contrast_ratio_128": 0.43765545235085646,
+          "high_to_low_contrast_ratio_512": 0.5208898480535208,
+          "high_to_low_contrast_ratio_128": 0.3325985411952508,
           "saved_checks": {
             "ratio_512": true,
             "ratio_128": true
@@ -2664,7 +2911,7 @@
           "label": "Common eye targets / selected filters",
           "geometry": "common",
           "filter_set": "selected",
-          "sigma_low": 8,
+          "sigma_low": 10,
           "sigma_high": 1.5,
           "gain": 2.7,
           "low_target_points": [
@@ -2689,13 +2936,13 @@
               -140.3149199793495
             ]
           ],
-          "clip_fraction": 0.0190582275390625,
+          "clip_fraction": 0.0169219970703125,
           "range": [
-            -0.6767400557295444,
-            1.9463685562011346
+            -0.6709777612531176,
+            1.9443163523316571
           ],
-          "high_to_low_contrast_ratio_512": 0.3467611279857714,
-          "high_to_low_contrast_ratio_128": 0.10735490851859493,
+          "high_to_low_contrast_ratio_512": 0.35435842521649397,
+          "high_to_low_contrast_ratio_128": 0.10970814518839976,
           "saved_checks": {
             "label": true,
             "sigma_low": true,
@@ -2715,33 +2962,33 @@
           "gain": 3.0,
           "low_target_points": [
             [
-              182,
-              202
+              194,
+              210
             ],
             [
-              318,
-              202
+              306,
+              210
             ]
           ],
           "low_matrix": [
             [
-              3.0893133711925658,
-              0.07021166752710377,
-              -452.22199277232835
+              2.544140423335054,
+              0.05782137325761487,
+              -328.30046463603514
             ],
             [
-              -0.07021166752710377,
-              3.0893133711925658,
-              -95.76768198244707
+              -0.05782137325761487,
+              2.544140423335054,
+              -35.22044398554465
             ]
           ],
-          "clip_fraction": 0.03493499755859375,
+          "clip_fraction": 0.038593292236328125,
           "range": [
-            -0.6954155513131045,
-            2.082517099742936
+            -0.6868295606192278,
+            2.0400236813960584
           ],
-          "high_to_low_contrast_ratio_512": 0.34483833447299744,
-          "high_to_low_contrast_ratio_128": 0.10675642295550461,
+          "high_to_low_contrast_ratio_512": 0.3359726845549424,
+          "high_to_low_contrast_ratio_128": 0.10401224776567929,
           "saved_checks": {
             "label": true,
             "sigma_low": true,
@@ -2756,38 +3003,38 @@
           "label": "Refined geometry / selected filters",
           "geometry": "refined",
           "filter_set": "selected",
-          "sigma_low": 8,
+          "sigma_low": 10,
           "sigma_high": 1.5,
           "gain": 2.7,
           "low_target_points": [
             [
-              182,
-              202
+              194,
+              210
             ],
             [
-              318,
-              202
+              306,
+              210
             ]
           ],
           "low_matrix": [
             [
-              3.0893133711925658,
-              0.07021166752710377,
-              -452.22199277232835
+              2.544140423335054,
+              0.05782137325761487,
+              -328.30046463603514
             ],
             [
-              -0.07021166752710377,
-              3.0893133711925658,
-              -95.76768198244707
+              -0.05782137325761487,
+              2.544140423335054,
+              -35.22044398554465
             ]
           ],
-          "clip_fraction": 0.0274200439453125,
+          "clip_fraction": 0.026885986328125,
           "range": [
-            -0.6242795627023905,
-            1.9541942698860417
+            -0.5950144882134893,
+            1.9047901142079624
           ],
-          "high_to_low_contrast_ratio_512": 0.3176327195046345,
-          "high_to_low_contrast_ratio_128": 0.09833661902414681,
+          "high_to_low_contrast_ratio_512": 0.3157534486047688,
+          "high_to_low_contrast_ratio_128": 0.09775610822484518,
           "saved_checks": {
             "label": true,
             "sigma_low": true,
