@@ -556,127 +556,187 @@
         "id": "part22",
         "title": "2.2 \u00b7 Hybrid images",
         "paragraphs": [
-          "A hybrid adds a blurred image to the signed detail of a second aligned image: H = G_sigmaL * A + gain (B - G_sigmaH * B). The low-frequency subject should dominate from farther away; fine edges make the high-frequency subject visible nearby. Filtering is performed in floating-point RGB intensity (or replicated luminance), with separable normalized Gaussian kernels and reflected image boundaries.",
-          "Derek + Nutmeg is the supplied pair. Astronaut + portrait cat and Obama + tabby are two custom pairs made from downloadable, attributed photographs. Both custom portraits use eye centers to align with the cat eyes. Each input is transformed independently onto a 512 x 512 canvas by a two-point similarity transform. Manual landmarks, original pixel coordinates and complete 2 x 3 matrices are saved in results/frequencies.json; the editable choices are in frequencies_config.json.",
-          "The six-panel sweeps compare blur widths in output pixels. The selected facial settings (sigmaL = 10, sigmaH = 5) preserve the broad human face while retaining cat fur, whiskers and eye rims. SigmaH = 2 produces weak, mainly fine texture; sigmaH = 8 introduces more cat shading and makes the distance interpretation less clean. SigmaL = 18 weakens useful human identity. These are visual judgments for these crops, not a universal optimal cutoff.",
-          "The Gaussian response has no sharp frequency boundary. The table gives the continuous-Gaussian half-amplitude estimate sqrt(2 ln 2) / (2 pi sigma), in cycles per output pixel. For the high-pass response 1-G, the half-amplitude frequency has the same expression. All actual filters use spatial convolution; the FFT panels diagnose the result.",
-          "Earth + Moon is an additional limitation study. Aligning both circular limbs is geometrically easy, but the two subjects share the same silhouette and overlapping spatial structure. The output is better described as a textured planet than a clean categorical switch. Good landmark alignment alone cannot guarantee a strong perceptual hybrid.",
-          "No signed band is clipped before addition. Exported display images are clipped to [0,1] and quantized to 8 bits; the table reports the fraction of scalar channel values outside this interval before export. The signed-band visualization uses 0.5 + 2.5H, independently of the numerical synthesis."
+          "A hybrid adds a blurred source to detail from a second aligned source: H = G_sigmaL * A + gain (B - G_sigmaH * B). Here the people provide the low-frequency image and the cats provide the high-frequency image. The three required examples are Derek + Nutmeg and two custom portrait/cat pairs.",
+          "I aligned the eye centers with a two-point similarity transform before filtering. The transform permits rotation, uniform scale and translation, but no face warping. The existing landmarks line up the pupils well, so the refinement changes the frequency separation and gain. Full original coordinates and 2 x 3 transforms are saved with the results.",
+          "The initial sigma-low 10, sigma-high 5, gain 1 settings left substantial cat shading at reduced sizes. Moving the high-pass sigma to 1.5 removes more of that broad structure. A gain of 2.2\u20133 restores fine fur contrast, while sigma-low 6 retains enough human eye and mouth structure to read at smaller sizes. The selected gain is lower for the dense tabby texture than for the lighter portrait cat. These are judgments from the displayed comparisons, not a universally optimal setting.",
+          "In the selected astronaut example, the 512-pixel view emphasizes cat fur and eye rims; the astronaut eyes and smile are readable at 128 pixels and clearer at 64. The 256-pixel view still contains both identities. Increasing gain further strengthens fine edges but also clips more highlights; increasing sigma-high leaks broader cat structure back into the reduced view. The six actual trials expose these tradeoffs.",
+          "To view the effect, open the largest result at normal size, then increase your viewing distance or compare the smaller versions. Keep the displayed image fixed while moving back. Exact distances depend on screen size, zoom and eyesight, so the pixel-size sequence is a repeatable demonstration rather than a calibrated distance test.",
+          "The Gaussian has no sharp cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair this is 0.0312 for the low pass and 0.1249 for the complementary high pass. The filtering itself is spatial convolution; the Fourier plots diagnose the resulting bands.",
+          "All filtering and addition use signed float64 values. Display exports clamp to [0,1] and quantize to 8 bits; the table reports the fraction of scalar channel values clipped. No intermediate band is clipped or contrast-normalized during synthesis. Additional alignment/component views, all other trial grids and the unsuccessful Earth + Moon study are included as supplemental figures."
         ],
         "figures": [
           {
-            "path": "images/hybrid_derek_nutmeg_alignment.jpg",
-            "caption": "Derek + Nutmeg: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
-          },
-          {
-            "path": "images/hybrid_derek_nutmeg_components.jpg",
-            "caption": "Derek + Nutmeg: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
-          },
-          {
-            "path": "images/hybrid_derek_nutmeg_distance.jpg",
-            "caption": "Derek + Nutmeg: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
-          },
-          {
-            "path": "images/hybrid_derek_nutmeg_sweep.jpg",
-            "caption": "Derek + Nutmeg: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
-          },
-          {
-            "path": "images/hybrid_astronaut_chelsea_alignment.jpg",
-            "caption": "Astronaut + portrait cat: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
-          },
-          {
-            "path": "images/hybrid_astronaut_chelsea_components.jpg",
-            "caption": "Astronaut + portrait cat: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
-          },
-          {
             "path": "images/hybrid_astronaut_chelsea_distance.jpg",
-            "caption": "Astronaut + portrait cat: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+            "caption": "Astronaut + portrait cat: one fixed result at 512, 256, 128 and 64 pixels, reduced with Lanczos. Fine fur and eye rims are visible at the largest size. The astronaut eyes and smile emerge in the smaller views; the intermediate view deliberately exposes the remaining mixture.",
+            "heading": "A custom hybrid across viewing scales",
+            "supplement": false,
+            "group": "hybrids"
           },
           {
             "path": "images/hybrid_astronaut_chelsea_sweep.jpg",
-            "caption": "Astronaut + portrait cat: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
+            "caption": "Astronaut + portrait cat: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
+            "heading": "Choosing cutoffs and detail gain",
+            "supplement": false,
+            "group": "hybrids"
           },
           {
-            "path": "images/hybrid_obama_tabby_alignment.jpg",
-            "caption": "Obama + tabby: original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
-          },
-          {
-            "path": "images/hybrid_obama_tabby_components.jpg",
-            "caption": "Obama + tabby: low-pass sigma 10 px, high-pass sigma 5 px, detail gain 1.0. Signed high frequencies are contrast-amplified around midgray only in this display."
-          },
-          {
-            "path": "images/hybrid_obama_tabby_distance.jpg",
-            "caption": "Obama + tabby: the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
-          },
-          {
-            "path": "images/hybrid_obama_tabby_sweep.jpg",
-            "caption": "Obama + tabby: six spatial-cutoff trials. Small high-pass sigma retains only very fine edges; large high-pass sigma leaks more cat structure into the distance view. A stronger low-pass blur also removes facial identity cues."
-          },
-          {
-            "path": "images/hybrid_earth_moon_alignment.jpg",
-            "caption": "Earth + Moon (limitation study): original inputs and two-point similarity alignment. Cyan circles identify the manually selected original landmarks and their shared destination. Rotation, uniform scale and translation are applied; interpolation is bilinear, with edge replication outside the source crop (filter boundaries use reflection)."
-          },
-          {
-            "path": "images/hybrid_earth_moon_components.jpg",
-            "caption": "Earth + Moon (limitation study): low-pass sigma 12 px, high-pass sigma 6 px, detail gain 1.4. Signed high frequencies are contrast-amplified around midgray only in this display."
-          },
-          {
-            "path": "images/hybrid_earth_moon_distance.jpg",
-            "caption": "Earth + Moon (limitation study): the same hybrid shown at 512, 256, 128 and 64 pixels. Smaller display size suppresses visible fine detail; use the largest panel or open the figure to examine the near view."
+            "path": "images/hybrid_fourier_sources.jpg",
+            "caption": "Original and aligned inputs for the favorite custom pair. Cyan landmarks are display annotations only; spectra are calculated from the unmarked images. Each spectrum is log(1 + 1000000 |fftshift(fft2(luminance))| / N), using one shared display maximum across both Fourier figures. Division by N normalizes differently sized inputs. No FFT window or mean subtraction is used.",
+            "heading": "Original sources, alignment and Fourier spectra",
+            "supplement": false,
+            "group": "hybrids"
           },
           {
             "path": "images/hybrid_fourier_process.jpg",
-            "caption": "Full Fourier workflow for Astronaut + portrait cat. Each bottom panel shows log(1 + 1000000 |fftshift(fft2(luminance))| / N), with one common display maximum for all panels. Division by N compares inputs of different dimensions. No FFT window or mean subtraction is used. The low pass concentrates energy centrally; the high pass suppresses the center and retains outer frequencies. Original, aligned, filtered and final images are all shown."
+            "caption": "The low-pass spectrum is concentrated centrally; the high pass suppresses central energy and preserves fine structure. Their spatial sum produces the final hybrid. The signed high component is displayed as 0.5 + gain H, with clipping only for display. Each spectrum is log(1 + 1000000 |fftshift(fft2(luminance))| / N), using one shared display maximum across both Fourier figures. Division by N normalizes differently sized inputs. No FFT window or mean subtraction is used.",
+            "heading": "Filtered components and reconstruction",
+            "supplement": false,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_summary.jpg",
+            "caption": "Derek + Nutmeg: complete original sources beside the final hybrid at 512, 128 and 64 pixels. A narrow high-pass band retains whiskers nearby while reducing broad cat shading at smaller scales. Gain 2.5 keeps this detail visible; the distant face remains somewhat mixed at 128 pixels.",
+            "heading": "Derek + Nutmeg",
+            "supplement": false,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_summary.jpg",
+            "caption": "Obama + tabby: complete original sources beside the final hybrid at 512, 128 and 64 pixels. The tabby has dense fur texture, so gain 2.2 is sufficient. A higher gain saturates more fur highlights. The human smile returns at reduced size, although the middle-scale image retains whiskers.",
+            "heading": "Obama + tabby",
+            "supplement": false,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_alignment.jpg",
+            "caption": "Derek + Nutmeg: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and the common destinations. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
+            "heading": "Derek + Nutmeg \u2014 alignment detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_components.jpg",
+            "caption": "Derek + Nutmeg: sigma low = 6 px, sigma high = 1.5 px and gain = 2.5. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Derek + Nutmeg \u2014 component detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_sweep.jpg",
+            "caption": "Derek + Nutmeg: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
+            "heading": "Derek + Nutmeg \u2014 cutoff and gain trials",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_derek_nutmeg_distance.jpg",
+            "caption": "Derek + Nutmeg: the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
+            "heading": "Derek + Nutmeg \u2014 full scale sequence",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_alignment.jpg",
+            "caption": "Astronaut + portrait cat: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and the common destinations. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
+            "heading": "Astronaut + portrait cat \u2014 alignment detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_astronaut_chelsea_components.jpg",
+            "caption": "Astronaut + portrait cat: sigma low = 6 px, sigma high = 1.5 px and gain = 3. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Astronaut + portrait cat \u2014 component detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_alignment.jpg",
+            "caption": "Obama + tabby: complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and the common destinations. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
+            "heading": "Obama + tabby \u2014 alignment detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_components.jpg",
+            "caption": "Obama + tabby: sigma low = 6 px, sigma high = 1.5 px and gain = 2.2. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Obama + tabby \u2014 component detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_sweep.jpg",
+            "caption": "Obama + tabby: every trial is synthesized at 512 x 512, then shown at the same 256-pixel and 64-pixel display sizes. The comparisons vary low-pass width, high-pass width and detail gain; the selected panel uses the exact settings of the final result.",
+            "heading": "Obama + tabby \u2014 cutoff and gain trials",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_obama_tabby_distance.jpg",
+            "caption": "Obama + tabby: the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
+            "heading": "Obama + tabby \u2014 full scale sequence",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_earth_moon_alignment.jpg",
+            "caption": "Earth + Moon (limitation study): complete originals and two-point similarity alignment. Cyan circles mark the original eye centers (or disk-limb landmarks) and the common destinations. The transform uses rotation, uniform scale and translation; image warping uses bilinear interpolation and edge replication, while filtering uses reflection.",
+            "heading": "Earth + Moon (limitation study) \u2014 alignment detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_earth_moon_components.jpg",
+            "caption": "Earth + Moon (limitation study): sigma low = 12 px, sigma high = 6 px and gain = 1.4. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Earth + Moon (limitation study) \u2014 component detail",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_earth_moon_summary.jpg",
+            "caption": "Earth + Moon (limitation study): complete original sources beside the final hybrid at 512, 128 and 64 pixels. Both circular subjects share a silhouette and overlapping structure, so this remains a textured-planet result rather than a convincing identity switch.",
+            "heading": "Earth + Moon (limitation study)",
+            "supplement": true,
+            "group": "hybrids"
+          },
+          {
+            "path": "images/hybrid_earth_moon_distance.jpg",
+            "caption": "Earth + Moon (limitation study): the same fixed hybrid at four display sizes, including the mixed intermediate scale.",
+            "heading": "Earth + Moon (limitation study) \u2014 full scale sequence",
+            "supplement": true,
+            "group": "hybrids"
           }
         ],
         "tables": [
           {
-            "title": "Selected parameters and display clipping",
+            "title": "Selected settings on a 512 x 512 canvas",
             "columns": [
               "Pair",
               "sigma low (px)",
               "sigma high (px)",
               "gain",
-              "low f_0.5",
-              "high f_0.5",
               "values clipped"
             ],
             "rows": [
               [
                 "Derek + Nutmeg",
-                "10",
-                "5",
-                "1.0",
-                "0.0187",
-                "0.0375",
-                "0.93%"
+                "6",
+                "1.5",
+                "2.5",
+                "1.95%"
               ],
               [
                 "Astronaut + portrait cat",
-                "10",
-                "5",
-                "1.0",
-                "0.0187",
-                "0.0375",
-                "0.88%"
+                "6",
+                "1.5",
+                "3",
+                "2.39%"
               ],
               [
                 "Obama + tabby",
-                "10",
-                "5",
-                "1.0",
-                "0.0187",
-                "0.0375",
-                "0.27%"
-              ],
-              [
-                "Earth + Moon (limitation study)",
-                "12",
                 "6",
-                "1.4",
-                "0.0156",
-                "0.0312",
-                "1.05%"
+                "1.5",
+                "2.2",
+                "2.07%"
               ]
             ]
           }
@@ -692,13 +752,16 @@
         "id": "hybrid-color",
         "title": "Color \u00b7 Which frequency band benefits?",
         "paragraphs": [
-          "Color is tested in neither image, the low-frequency image only, the high-frequency image only and both images. Low-only color keeps broad skin and background hues associated with the distant astronaut. High-only color contributes local colored edges and cat-eye detail but cannot transfer the cat\u2019s broad coat color, because those low frequencies have been removed.",
-          "For Astronaut + portrait cat, low-only color is the most coherent color variant: its large color regions agree with the distant subject, while grayscale cat detail remains readable. Both-color introduces some competing hue at edges; high-only color has a mostly neutral base. The grayscale versions above make the frequency-dependent identity easier to compare without a persistent broad color cue."
+          "The four controlled variants put color in neither source, only the low-frequency source, only the high-frequency source, or both. Low-only color preserves broad skin and hair hues associated with the distant astronaut. High-only color contributes colored fine edges but cannot recover the cat\u2019s broad coat color after that information has been removed.",
+          "For this pair, low-only color is the most coherent color version: its large color regions agree with the distant face, while grayscale fur remains visible nearby. Both-color adds localized competing hues around some cat edges. The grayscale main examples make the frequency-dependent identity easier to judge without a broad color cue."
         ],
         "figures": [
           {
             "path": "images/hybrid_color_comparison.jpg",
-            "caption": "Four controlled color variants use identical alignment, sigma values and gain. Only grayscale conversion changes. Grayscale uses luminance weights 0.2126, 0.7152, 0.0722."
+            "caption": "The four variants use identical geometry, sigma values and detail gain. Only conversion to luminance changes (weights 0.2126, 0.7152, 0.0722). Broad human skin and hair colors survive the low pass; high-only color is confined to edges and fine cat detail.",
+            "heading": "Color in the low band, high band, or both",
+            "supplement": false,
+            "group": "hybrids"
           }
         ],
         "tables": [],
@@ -780,71 +843,117 @@
       },
       {
         "id": "blend-custom",
-        "title": "Two custom color blends \u00b7 Curved masks",
+        "title": "Two custom color blends \u00b7 Irregular selections",
         "paragraphs": [
-          "A world in a cup maps NASA\u2019s Earth photograph onto the elliptical coffee surface. Horizontal and vertical scaling are deliberately different to approximate the cup\u2019s viewing angle. The Earth is an imaginative replacement for the crema; the blend adjusts color and low-frequency shading near its elliptical boundary while preserving the continent and cloud texture.",
-          "Moon over the launch pad places a full Moon in the open sky beside the rocket. Its circular mask follows the limb. This is a creative composite: scale and placement are artistic choices rather than an astronomical claim. A smaller maximum blur than in the 512-pixel oraple limits how far brightness spreads around this small inserted object.",
-          "Both masks have curved boundaries (an ellipse and a circle), satisfying the nonrectangular-mask requirement for both custom examples. The saved configuration exposes the source and target centers, radii, number of detail bands and base sigma. Each blend uses four detail bands at sigma 1.5, 3, 6 and 12 pixels plus the coarse residual, and all RGB channels are processed independently.",
-          "For clean placement, the registered source canvas contains the object within its full disk and copies the destination outside that disk. The selection mask is slightly inside the visible disk. This preprocessing avoids blending a black rectangular photo background; the numerical multiresolution method itself is unchanged. The figures show this canvas explicitly so the operation is reproducible.",
-          "Color adds useful semantic contrast in the coffee composite: the blue oceans and white clouds remain distinct from the warm brown cup and crema. The grayscale version keeps the cloud texture but makes the Earth resemble a mottled liquid surface. In the rocket scene the Moon itself is nearly neutral; color mainly preserves the cool sky and warm launch-pad lights. I prefer RGB for both finished blends because those contextual colors support the scene without changing the blending algorithm.",
-          "The principal limitation is physical consistency: multiresolution blending smooths intensity transitions but cannot synthesize correct reflections, shadows or perspective. The coffee example benefits from an elliptical warp, while the Moon retains a sharper natural limb. All arithmetic remains signed float64 until final display clipping."
+          "Tabby disguise transfers the tabby\u2019s central face onto the orange-and-white cat while retaining the destination\u2019s ears, whiskers and chest. An irregular 18-vertex polygon follows the forehead and cheeks. Eye-center alignment puts the face texture in a plausible position. The hard cut exposes the polygon immediately; multiscale blending softens the coat-color transition while keeping the transferred eyes and fur crisp.",
+          "One world, two surfaces is an imaginary globe: Earth\u2019s oceans and clouds transition into lunar craters along an S-shaped boundary. Ellipses fitted to the largest source contours above luminance 0.04 are mapped to a shared circle. This affine registration corrects approximately 1% anisotropy in the photographed Earth outline; the Moon needs almost uniform scaling. Thresholding only measures geometry and does not mask or recolor either photograph. Their shared round outline supports this composite even though their textures did not produce a convincing frequency-switching hybrid. This is an artistic surface fusion, not an astronomical depiction.",
+          "Both examples use the entire registered source photographs. The background is never copied into the other source before filtering. Hard cut, single-scale feathering and multiscale blending receive identical arrays and the same binary mask. The feather baseline uses the coarsest Gaussian mask on the full images: its wide transition mixes competing fine details as well as broad colors.",
+          "The cat uses five detail bands (sigma = 2, 4, 8, 16, 32 pixels); the globe uses six (2, 4, 8, 16, 32, 64 pixels). Both retain their coarse residual. Supplementary sweeps test four, five and six bands without changing other inputs. For the cat, 16 pixels leaves a more conspicuous facial patch; 32 softens the coat boundary without the broader tonal spill of 64. The globe benefits from 64 pixels because its brightness mismatch spans a large fraction of the disk.",
+          "Compared with broad feathering, the cat\u2019s cheek and muzzle retain more definite tabby detail; feathering mixes both faces over a broad transition. At the globe\u2019s boundary, clouds and crater detail remain more localized in the multiscale result. The boundary-jump values below measure adjacent RGB differences across the original binary contour. Feathering gives still smaller jumps because it mixes more image detail; minimizing this number would not select the most convincing photograph. It is a local seam diagnostic, not a perceptual score or proof of physical realism.",
+          "Color helps both concepts. The warm tabby patch remains distinct from white fur and orange ears; grayscale makes these coat regions less distinct. The globe\u2019s blue oceans contrast with the nearly neutral Moon and make the two surfaces easier to identify. I prefer RGB for the final composites; grayscale controls show that seam smoothing also works without this color cue.",
+          "Multiresolution blending cannot fix anatomical or surface mismatches. The cats still differ slightly in muzzle shape and fur direction, and lunar features cannot continue Earth\u2019s clouds naturally. A small transition remains where the globe seam meets the outer limb. These limitations remain visible in the unretouched results and matched close-ups. Processing stays signed float64; only final image display is clipped to [0,1]."
         ],
         "figures": [
           {
-            "path": "images/blend_earth_coffee_overview.jpg",
-            "caption": "A world in a cup: both custom blends use a nonrectangular mask and three color channels. The object is scaled/placed first. The source canvas uses the destination beyond the object disk, avoiding a black rectangular background in coarse levels."
+            "path": "images/blend_custom_cat_inputs.jpg",
+            "caption": "Tabby disguise: original photographs and complete registered inputs. Eye centers align the two faces. Cyan marks show eye centers and their shared destination. The cat inputs use similarity transforms (uniform scale, rotation and translation). Both methods use bilinear interpolation and replicated borders. There is no exposure matching, color correction, background replacement or retouching. Every baseline receives exactly these registered arrays. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Tabby disguise \u00b7 Inputs and registration"
           },
           {
-            "path": "images/blend_earth_coffee_maskstack.jpg",
-            "caption": "A world in a cup: the initial curved selection becomes smoother at coarser scales. The complete stack includes the residual weight."
+            "path": "images/blend_custom_cat_comparison.jpg",
+            "caption": "Tabby disguise: controlled baselines using the same alignment and binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. The multiscale result softens the forehead/cheek boundary while preserving the tabby eyes and fur. Broad feathering mixes competing facial detail near the cheeks and muzzle. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Tabby disguise \u00b7 Mask and fair baselines"
           },
           {
-            "path": "images/blend_earth_coffee_process.jpg",
-            "caption": "Favorite custom blend, A world in a cup: masked object/source contribution, masked destination contribution and their sum at detail levels 0, 1 and 3; the final row sums ALL detail bands and the coarse residual. This follows the multiscale contribution idea of Burt\u2013Adelson Figure 10. Each detail row uses a common symmetric scale; reconstructed rows use actual intensity."
+            "path": "images/blend_custom_cat_detail.jpg",
+            "caption": "Identical boundary crops, x=105:410, y=90:380, with identical display scaling. The polygon edge disappears, while the tabby eye rims and fur remain more definite than in the feather baseline. Slight differences in muzzle shape and fur direction remain. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Tabby disguise \u00b7 Boundary detail",
+            "supplement": true
           },
           {
-            "path": "images/blend_moon_rocket_overview.jpg",
-            "caption": "Moon over the launch pad: both custom blends use a nonrectangular mask and three color channels. The object is scaled/placed first. The source canvas uses the destination beyond the object disk, avoiding a black rectangular background in coarse levels. Derived from Gregory H. Revera\u2019s Moon photograph, CC BY-SA 3.0; this adapted figure is available under the same license."
+            "path": "images/blend_custom_cat_maskstack.jpg",
+            "caption": "Tabby disguise: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512.",
+            "heading": "Tabby disguise \u00b7 Complete mask stack",
+            "supplement": true
           },
           {
-            "path": "images/blend_moon_rocket_maskstack.jpg",
-            "caption": "Moon over the launch pad: the initial curved selection becomes smoother at coarser scales. The complete stack includes the residual weight."
+            "path": "images/blend_custom_cat_sweep.jpg",
+            "caption": "Controlled scale sweep: sources, transform, mask and base sigma remain fixed; only the number of detail bands changes. Five bands (coarse sigma 32) soften the facial patch without the wider tonal spill of six bands; four leave a stronger patch boundary. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Tabby disguise \u00b7 Scale selection",
+            "supplement": true
           },
           {
-            "path": "images/blend_color_comparison.jpg",
-            "caption": "Controlled grayscale-versus-RGB comparison for both custom blends. The grayscale version applies the same stack, mask and placement to luminance inputs; only the presence of color changes."
+            "path": "images/blend_custom_cat_process.jpg",
+            "caption": "Favorite blend, Tabby disguise: rows 1\u20133 show masked A, masked B and their sum at Laplacian levels 0, 2 and 4. The final row reconstructs each contribution and the result using ALL detail bands plus the coarse residual, following Burt\u2013Adelson Figure 10. Each detail row uses one shared symmetric contrast scale; reconstructed rows retain actual intensity. Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "Favorite blend \u00b7 Twelve-panel multiscale process"
+          },
+          {
+            "path": "images/blend_custom_planet_inputs.jpg",
+            "caption": "One world, two surfaces: original photographs and complete registered inputs. Measured disk ellipses are mapped to a common circle of radius 220 pixels centered at (256,256). Earth needs a small anisotropic correction; the Moon's measured outline is almost circular. Cyan outlines show fitted source ellipses and the common target circle. The largest external contour above luminance 0.04 is fitted with cv2.fitEllipse, then mapped affinely to a circle. The differential axis scaling is 1.06% for Earth and 0.03% for the Moon. Thresholding measures geometry only; the warp samples the original RGB pixels. Both methods use bilinear interpolation and replicated borders. There is no exposure matching, color correction, background replacement or retouching. Every baseline receives exactly these registered arrays. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "One world, two surfaces \u00b7 Inputs and registration"
+          },
+          {
+            "path": "images/blend_custom_planet_comparison.jpg",
+            "caption": "One world, two surfaces: controlled baselines using the same alignment and binary selection. Feathering applies the stack\u2019s coarsest Gaussian mask to every image frequency; the multiscale result uses the corresponding mask at each Laplacian band. A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail; the fine cloud and crater structures remain more localized than in the broad feather mixture. The seam is S-shaped rather than straight. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "One world, two surfaces \u00b7 Mask and fair baselines"
+          },
+          {
+            "path": "images/blend_custom_planet_detail.jpg",
+            "caption": "Identical boundary crops, x=170:350, y=90:435, with identical display scaling. The hard-cut brightness discontinuity is greatly reduced, although clouds and lunar features cannot form a physically continuous texture. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "One world, two surfaces \u00b7 Boundary detail",
+            "supplement": true
+          },
+          {
+            "path": "images/blend_custom_planet_maskstack.jpg",
+            "caption": "One world, two surfaces: all Gaussian mask levels, including the coarse residual weight. All arrays remain 512 x 512.",
+            "heading": "One world, two surfaces \u00b7 Complete mask stack",
+            "supplement": true
+          },
+          {
+            "path": "images/blend_custom_planet_sweep.jpg",
+            "caption": "Controlled scale sweep: sources, transform, mask and base sigma remain fixed; only the number of detail bands changes. Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary. Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+            "heading": "One world, two surfaces \u00b7 Scale selection",
+            "supplement": true
+          },
+          {
+            "path": "images/blend_custom_color_comparison.jpg",
+            "caption": "Controlled luminance-versus-RGB comparison. Registration, masks and all stack settings remain fixed. Luminance is 0.2126R + 0.7152G + 0.0722B; RGB channels are blended independently. Tabby and Moon derivatives in this figure are distributed under CC BY-SA 3.0; source credits are listed below.",
+            "heading": "Color experiment \u00b7 Luminance and RGB"
           }
         ],
         "tables": [
           {
-            "title": "Custom-blend configuration",
+            "title": "Custom-blend settings and local boundary diagnostic",
             "columns": [
               "Blend",
-              "shape H x W",
-              "center x,y",
-              "mask radii x,y",
-              "detail bands",
-              "base sigma",
-              "values clipped"
+              "Mask",
+              "Bands",
+              "Max sigma",
+              "Hard jump",
+              "Feather jump",
+              "Stack jump",
+              "Clipped"
             ],
             "rows": [
               [
-                "A world in a cup",
-                "400 x 600",
-                "[286, 151]",
-                "[77, 36]",
-                "4",
-                "1.5",
-                "0.13%"
+                "Tabby disguise",
+                "polygon",
+                "5",
+                "32",
+                "0.2633",
+                "0.0297",
+                "0.0658",
+                "0.00%"
               ],
               [
-                "Moon over the launch pad",
-                "427 x 640",
-                "[140, 89]",
-                "[41, 41]",
-                "4",
-                "1.5",
-                "0.01%"
+                "One world, two surfaces",
+                "sinusoidal",
+                "6",
+                "64",
+                "0.2718",
+                "0.0422",
+                "0.0808",
+                "4.92%"
               ]
             ]
           }
@@ -893,11 +1002,44 @@
             512,
             512
           ],
-          "sigma_low": 10,
-          "sigma_high": 5,
-          "gain": 1.0,
+          "sigma_low": 6,
+          "sigma_high": 1.5,
+          "gain": 2.5,
           "low_color": false,
           "high_color": false,
+          "trial_settings": [
+            [
+              10,
+              5,
+              1
+            ],
+            [
+              6,
+              1.5,
+              1
+            ],
+            [
+              14,
+              1.5,
+              2.5
+            ],
+            [
+              6,
+              5,
+              2.5
+            ],
+            [
+              6,
+              1,
+              4
+            ],
+            [
+              6,
+              1.5,
+              2.5
+            ]
+          ],
+          "selection_note": "A narrow high-pass band retains whiskers nearby while reducing broad cat shading at smaller scales. Gain 2.5 keeps this detail visible; the distant face remains somewhat mixed at 128 pixels.",
           "low_matrix": [
             [
               1.1410979989738328,
@@ -922,17 +1064,80 @@
               216.7431899948604
             ]
           ],
-          "clip_fraction": 0.009326934814453125,
+          "clip_fraction": 0.019474029541015625,
           "range": [
-            -0.15557213490661004,
-            1.2414687407969232
+            -0.2682913771671401,
+            1.7458561206200098
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
-          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "low_half_amplitude_cycles_per_pixel": 0.031231770854879597,
+          "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
           "final": "images/hybrid_derek_nutmeg_final.jpg",
           "alignment": "images/hybrid_derek_nutmeg_alignment.jpg",
           "components": "images/hybrid_derek_nutmeg_components.jpg",
-          "near_far": "images/hybrid_derek_nutmeg_distance.jpg"
+          "near_far": "images/hybrid_derek_nutmeg_distance.jpg",
+          "trials": [
+            {
+              "sigma_low": 10,
+              "sigma_high": 5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.009326934814453125,
+              "high_to_low_contrast_ratio_512": 0.3119387549912097,
+              "high_to_low_contrast_ratio_128": 0.23490448474929426
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.005859375,
+              "high_to_low_contrast_ratio_512": 0.17198944654367093,
+              "high_to_low_contrast_ratio_128": 0.06477478974398178
+            },
+            {
+              "sigma_low": 14,
+              "sigma_high": 1.5,
+              "gain": 2.5,
+              "selected": false,
+              "clip_fraction": 0.0128936767578125,
+              "high_to_low_contrast_ratio_512": 0.46821315625021603,
+              "high_to_low_contrast_ratio_128": 0.17634738396444294
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 5,
+              "gain": 2.5,
+              "selected": false,
+              "clip_fraction": 0.05149078369140625,
+              "high_to_low_contrast_ratio_512": 0.747253255826397,
+              "high_to_low_contrast_ratio_128": 0.5626942045298134
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1,
+              "gain": 4,
+              "selected": false,
+              "clip_fraction": 0.02337646484375,
+              "high_to_low_contrast_ratio_512": 0.48965054160490756,
+              "high_to_low_contrast_ratio_128": 0.13269542967903422
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 2.5,
+              "selected": true,
+              "clip_fraction": 0.019474029541015625,
+              "high_to_low_contrast_ratio_512": 0.4299736163591774,
+              "high_to_low_contrast_ratio_128": 0.16193697411653515
+            }
+          ],
+          "band_contrast_diagnostic": {
+            "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
+            "selected_512": 0.4299736163591774,
+            "selected_128": 0.16193697411653515,
+            "baseline_512": 0.3119387549912097,
+            "baseline_128": 0.23490448474929426
+          }
         },
         {
           "id": "astronaut_chelsea",
@@ -973,11 +1178,44 @@
             512,
             512
           ],
-          "sigma_low": 10,
-          "sigma_high": 5,
-          "gain": 1.0,
+          "sigma_low": 6,
+          "sigma_high": 1.5,
+          "gain": 3.0,
           "low_color": false,
           "high_color": false,
+          "trial_settings": [
+            [
+              10,
+              5,
+              1
+            ],
+            [
+              6,
+              1.5,
+              1
+            ],
+            [
+              14,
+              1.5,
+              3.0
+            ],
+            [
+              6,
+              5,
+              3.0
+            ],
+            [
+              6,
+              1,
+              4
+            ],
+            [
+              6,
+              1.5,
+              3.0
+            ]
+          ],
+          "selection_note": "This is the clearest custom example: narrow-band fur detail dominates the 512-pixel view, while the astronaut eyes and smile are readable at 128 pixels and clearer at 64. Gain 3 restores visible fine detail after lowering the high-pass sigma.",
           "low_matrix": [
             [
               3.6344863190500774,
@@ -1002,17 +1240,81 @@
               -202.78415380133998
             ]
           ],
-          "clip_fraction": 0.0088348388671875,
+          "clip_fraction": 0.023860931396484375,
           "range": [
-            -0.2355017642972339,
-            1.3696856657059562
+            -0.7749343168700958,
+            2.070002046107769
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
-          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "low_half_amplitude_cycles_per_pixel": 0.031231770854879597,
+          "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
           "final": "images/hybrid_astronaut_chelsea_final.jpg",
           "alignment": "images/hybrid_astronaut_chelsea_alignment.jpg",
           "components": "images/hybrid_astronaut_chelsea_components.jpg",
-          "near_far": "images/hybrid_astronaut_chelsea_distance.jpg"
+          "near_far": "images/hybrid_astronaut_chelsea_distance.jpg",
+          "trials": [
+            {
+              "sigma_low": 10,
+              "sigma_high": 5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.0088348388671875,
+              "high_to_low_contrast_ratio_512": 0.21823916796206178,
+              "high_to_low_contrast_ratio_128": 0.16260895167298844
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.00846099853515625,
+              "high_to_low_contrast_ratio_512": 0.12571848233230856,
+              "high_to_low_contrast_ratio_128": 0.03892067783356161
+            },
+            {
+              "sigma_low": 14,
+              "sigma_high": 1.5,
+              "gain": 3.0,
+              "selected": false,
+              "clip_fraction": 0.01573944091796875,
+              "high_to_low_contrast_ratio_512": 0.41119716930335515,
+              "high_to_low_contrast_ratio_128": 0.1273062648807753
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 5,
+              "gain": 3.0,
+              "selected": false,
+              "clip_fraction": 0.050140380859375,
+              "high_to_low_contrast_ratio_512": 0.6271538355991961,
+              "high_to_low_contrast_ratio_128": 0.46727332792490456
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1,
+              "gain": 4,
+              "selected": false,
+              "clip_fraction": 0.024639129638671875,
+              "high_to_low_contrast_ratio_512": 0.3966218808972853,
+              "high_to_low_contrast_ratio_128": 0.07844105258494526
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 3.0,
+              "selected": true,
+              "clip_fraction": 0.023860931396484375,
+              "high_to_low_contrast_ratio_512": 0.37715544699692566,
+              "high_to_low_contrast_ratio_128": 0.11676203364064758
+            }
+          ],
+          "band_contrast_diagnostic": {
+            "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
+            "selected_512": 0.37715544699692566,
+            "selected_128": 0.11676203364064758,
+            "baseline_512": 0.21823916796206178,
+            "baseline_128": 0.16260895167298844
+          },
+          "fourier_common_display_max": 13.19445966778475
         },
         {
           "id": "obama_tabby",
@@ -1053,11 +1355,44 @@
             512,
             512
           ],
-          "sigma_low": 10,
-          "sigma_high": 5,
-          "gain": 1.0,
+          "sigma_low": 6,
+          "sigma_high": 1.5,
+          "gain": 2.2,
           "low_color": false,
           "high_color": false,
+          "trial_settings": [
+            [
+              10,
+              5,
+              1
+            ],
+            [
+              6,
+              1.5,
+              1
+            ],
+            [
+              14,
+              1.5,
+              2.2
+            ],
+            [
+              6,
+              5,
+              2.2
+            ],
+            [
+              6,
+              1,
+              4
+            ],
+            [
+              6,
+              1.5,
+              2.2
+            ]
+          ],
+          "selection_note": "The tabby has dense fur texture, so gain 2.2 is sufficient. A higher gain saturates more fur highlights. The human smile returns at reduced size, although the middle-scale image retains whiskers.",
           "low_matrix": [
             [
               0.5479387791004515,
@@ -1082,17 +1417,80 @@
               -264.8387096774194
             ]
           ],
-          "clip_fraction": 0.002704620361328125,
+          "clip_fraction": 0.02071380615234375,
           "range": [
-            -0.04227652655504638,
-            1.2203893641678283
+            -0.40895982939132364,
+            1.550152131329233
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
-          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "low_half_amplitude_cycles_per_pixel": 0.031231770854879597,
+          "high_half_amplitude_cycles_per_pixel": 0.12492708341951839,
           "final": "images/hybrid_obama_tabby_final.jpg",
           "alignment": "images/hybrid_obama_tabby_alignment.jpg",
           "components": "images/hybrid_obama_tabby_components.jpg",
-          "near_far": "images/hybrid_obama_tabby_distance.jpg"
+          "near_far": "images/hybrid_obama_tabby_distance.jpg",
+          "trials": [
+            {
+              "sigma_low": 10,
+              "sigma_high": 5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.002704620361328125,
+              "high_to_low_contrast_ratio_512": 0.6854327457557232,
+              "high_to_low_contrast_ratio_128": 0.43765545235085646
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.000652313232421875,
+              "high_to_low_contrast_ratio_512": 0.42801211724265503,
+              "high_to_low_contrast_ratio_128": 0.11082987130118807
+            },
+            {
+              "sigma_low": 14,
+              "sigma_high": 1.5,
+              "gain": 2.2,
+              "selected": false,
+              "clip_fraction": 0.0174560546875,
+              "high_to_low_contrast_ratio_512": 1.1299630701160623,
+              "high_to_low_contrast_ratio_128": 0.2926358441501678
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 5,
+              "gain": 2.2,
+              "selected": false,
+              "clip_fraction": 0.0501556396484375,
+              "high_to_low_contrast_ratio_512": 1.371034571737701,
+              "high_to_low_contrast_ratio_128": 0.8753175510645472
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1,
+              "gain": 4,
+              "selected": false,
+              "clip_fraction": 0.04950714111328125,
+              "high_to_low_contrast_ratio_512": 1.333105435318158,
+              "high_to_low_contrast_ratio_128": 0.22622553150552946
+            },
+            {
+              "sigma_low": 6,
+              "sigma_high": 1.5,
+              "gain": 2.2,
+              "selected": true,
+              "clip_fraction": 0.02071380615234375,
+              "high_to_low_contrast_ratio_512": 0.9416266579338411,
+              "high_to_low_contrast_ratio_128": 0.24382571690017632
+            }
+          ],
+          "band_contrast_diagnostic": {
+            "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
+            "selected_512": 0.9416266579338411,
+            "selected_128": 0.24382571690017632,
+            "baseline_512": 0.6854327457557232,
+            "baseline_128": 0.43765545235085646
+          }
         },
         {
           "id": "earth_moon",
@@ -1138,6 +1536,7 @@
           "gain": 1.4,
           "low_color": false,
           "high_color": false,
+          "supplement": true,
           "low_matrix": [
             [
               0.15805243445692885,
@@ -1172,7 +1571,15 @@
           "final": "images/hybrid_earth_moon_final.jpg",
           "alignment": "images/hybrid_earth_moon_alignment.jpg",
           "components": "images/hybrid_earth_moon_components.jpg",
-          "near_far": "images/hybrid_earth_moon_distance.jpg"
+          "near_far": "images/hybrid_earth_moon_distance.jpg",
+          "trials": [],
+          "band_contrast_diagnostic": {
+            "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
+            "selected_512": 0.3177342981085221,
+            "selected_128": 0.2008516272706366,
+            "baseline_512": 0.21268925815438636,
+            "baseline_128": 0.12406386623730956
+          }
         }
       ],
       "stacks": {
@@ -1210,113 +1617,367 @@
       },
       "blends": [
         {
-          "id": "earth_coffee",
-          "title": "A world in a cup",
-          "background": "data/custom/coffee.png",
-          "object": "data/custom/earth.jpg",
-          "shape": [
-            400,
-            600
-          ],
-          "source_center": [
-            1494,
-            1495
-          ],
-          "source_radii": [
-            1335,
-            1335
-          ],
-          "target_center": [
-            286,
-            151
-          ],
-          "target_radii": [
-            80,
-            39
-          ],
-          "mask_radii": [
-            77,
-            36
-          ],
-          "bands": 4,
-          "base_sigma": 1.5,
-          "placement_matrix": [
+          "id": "custom_cat",
+          "title": "Tabby disguise",
+          "a_path": "data/custom/tabby.jpg",
+          "b_path": "data/custom/portrait_cat.jpg",
+          "a_label": "tabby photograph",
+          "b_label": "orange-and-white cat",
+          "a_points": [
             [
-              0.0599250936329588,
-              0.0,
-              196.47191011235955
+              626,
+              644
+            ],
+            [
+              843,
+              644
+            ]
+          ],
+          "b_points": [
+            [
+              780,
+              688
+            ],
+            [
+              1042,
+              692
+            ]
+          ],
+          "target_points": [
+            [
+              170,
+              210
+            ],
+            [
+              330,
+              210
+            ]
+          ],
+          "registration": {
+            "kind": "two_point_similarity"
+          },
+          "shape": [
+            512,
+            512
+          ],
+          "mask": {
+            "kind": "polygon",
+            "vertices": [
+              [
+                152,
+                100
+              ],
+              [
+                210,
+                116
+              ],
+              [
+                251,
+                96
+              ],
+              [
+                302,
+                113
+              ],
+              [
+                339,
+                95
+              ],
+              [
+                375,
+                158
+              ],
+              [
+                374,
+                228
+              ],
+              [
+                394,
+                267
+              ],
+              [
+                354,
+                309
+              ],
+              [
+                321,
+                330
+              ],
+              [
+                294,
+                355
+              ],
+              [
+                250,
+                365
+              ],
+              [
+                207,
+                350
+              ],
+              [
+                180,
+                330
+              ],
+              [
+                130,
+                298
+              ],
+              [
+                114,
+                259
+              ],
+              [
+                131,
+                213
+              ],
+              [
+                125,
+                170
+              ]
+            ]
+          },
+          "bands": 5,
+          "base_sigma": 2,
+          "trial_bands": [
+            4,
+            5,
+            6
+          ],
+          "detail_crop": [
+            105,
+            90,
+            410,
+            380
+          ],
+          "favorite": true,
+          "alignment_note": "Eye centers align the two faces.",
+          "visual_observation": "The multiscale result softens the forehead/cheek boundary while preserving the tabby eyes and fur. Broad feathering mixes competing facial detail near the cheeks and muzzle.",
+          "crop_observation": "The polygon edge disappears, while the tabby eye rims and fur remain more definite than in the feather baseline. Slight differences in muzzle shape and fur direction remain.",
+          "selection_note": "Five bands (coarse sigma 32) soften the facial patch without the wider tonal spill of six bands; four leave a stronger patch boundary.",
+          "derivative_notice": "Tabby photo: Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Orange-and-white cat: Himanshu Choudhary, Unsplash License. The adapted composite and tabby-derived figures are distributed under CC BY-SA 3.0.",
+          "a_matrix": [
+            [
+              0.7373271889400922,
+              -0.0,
+              -291.5668202764977
             ],
             [
               0.0,
-              0.029213483146067417,
-              107.32584269662921
+              0.7373271889400922,
+              -264.8387096774194
             ]
           ],
-          "clip_fraction": 0.001288888888888889,
-          "range": [
-            -1.918670890230039e-09,
-            1.0841518032273214
+          "b_matrix": [
+            [
+              0.6105447130789398,
+              0.009321293329449462,
+              -312.63792601223423
+            ],
+            [
+              -0.009321293329449462,
+              0.6105447130789398,
+              -202.78415380133998
+            ]
           ],
-          "reconstruction_error": 4.440892098500626e-16,
-          "final": "images/blend_earth_coffee_final.jpg",
-          "mask_area_pixels": 8687,
+          "coarse_sigma": 32,
+          "feather_sigma": 32,
+          "source_precomposition": false,
+          "clip_fraction": 3.5603841145833336e-05,
+          "range": [
+            -0.014592932625512284,
+            1.0761345368706323
+          ],
+          "reconstruction_error": 2.220446049250313e-16,
+          "boundary_jump_hard": 0.26330435516513756,
+          "boundary_jump_feather": 0.0297261181821061,
+          "boundary_jump_multiscale": 0.0658043025475994,
+          "final": "images/blend_custom_cat_final.jpg",
+          "mask_area_pixels": 56552,
+          "trial_results": [
+            {
+              "bands": 4,
+              "coarse_sigma": 16,
+              "boundary_jump": 0.0657520240798504,
+              "clip_fraction": 1.1444091796875e-05
+            },
+            {
+              "bands": 5,
+              "coarse_sigma": 32,
+              "boundary_jump": 0.0658043025475994,
+              "clip_fraction": 3.5603841145833336e-05
+            },
+            {
+              "bands": 6,
+              "coarse_sigma": 64,
+              "boundary_jump": 0.06585522405139643,
+              "clip_fraction": 6.612141927083333e-05
+            }
+          ],
           "process_shared_row_scales": [
-            0.266264458859101,
-            0.11845939047659969,
-            0.18571898390384606
+            0.2234354029745629,
+            0.11356900363134893,
+            0.13059088915771355
           ]
         },
         {
-          "id": "moon_rocket",
-          "title": "Moon over the launch pad",
-          "background": "data/custom/rocket.jpg",
-          "object": "data/custom/moon.jpg",
+          "id": "custom_planet",
+          "title": "One world, two surfaces",
+          "a_path": "data/custom/earth.jpg",
+          "b_path": "data/custom/moon.jpg",
+          "a_label": "NASA Blue Marble",
+          "b_label": "Gregory Revera's Moon",
+          "registration": {
+            "kind": "ellipse_to_circle",
+            "luminance_threshold": 0.04,
+            "target_center": [
+              256,
+              256
+            ],
+            "target_radius": 220
+          },
           "shape": [
-            427,
-            640
+            512,
+            512
           ],
-          "source_center": [
-            1291,
-            1249
+          "mask": {
+            "kind": "sinusoidal",
+            "center_x": 256,
+            "amplitude": 45,
+            "origin_y": 256,
+            "period": 880
+          },
+          "bands": 6,
+          "base_sigma": 2,
+          "trial_bands": [
+            4,
+            5,
+            6
           ],
-          "source_radii": [
-            1073,
-            1073
+          "detail_crop": [
+            170,
+            90,
+            350,
+            435
           ],
-          "target_center": [
-            140,
-            89
-          ],
-          "target_radii": [
-            42,
-            42
-          ],
-          "mask_radii": [
-            41,
-            41
-          ],
-          "bands": 4,
-          "base_sigma": 1.5,
-          "placement_matrix": [
+          "favorite": false,
+          "alignment_note": "Measured disk ellipses are mapped to a common circle of radius 220 pixels centered at (256,256). Earth needs a small anisotropic correction; the Moon's measured outline is almost circular.",
+          "visual_observation": "A broad brightness jump becomes a continuous transition from Earth clouds to lunar surface detail; the fine cloud and crater structures remain more localized than in the broad feather mixture. The seam is S-shaped rather than straight.",
+          "crop_observation": "The hard-cut brightness discontinuity is greatly reduced, although clouds and lunar features cannot form a physically continuous texture.",
+          "selection_note": "Six bands (coarse sigma 64) provide a wider low-frequency transition appropriate to the globe-scale brightness mismatch. Narrower transitions retain a more visible boundary.",
+          "derivative_notice": "Earth: NASA/Apollo 17, public domain. Moon: Gregory H. Revera, CC BY-SA 3.0. The adapted composite and Moon-derived figures are distributed under CC BY-SA 3.0.",
+          "a_matrix": [
             [
-              0.0391425908667288,
-              0.0,
-              89.46691519105312
+              0.1638159531744351,
+              -0.0004181086953576439,
+              12.049742308642863
             ],
             [
-              0.0,
-              0.0391425908667288,
-              40.11090400745573
+              -0.000418108695357636,
+              0.1623070548689055,
+              14.515398675546521
             ]
           ],
-          "clip_fraction": 8.904176424668229e-05,
-          "range": [
-            -0.0004305394265265161,
-            1.0
+          "b_matrix": [
+            [
+              0.20522297943796922,
+              1.1165163677603344e-05,
+              -9.050199191932052
+            ],
+            [
+              1.1165163677600864e-05,
+              0.2051681512607799,
+              0.2835270043481728
+            ]
           ],
-          "reconstruction_error": 2.220446049250313e-16,
-          "final": "images/blend_moon_rocket_final.jpg",
-          "mask_area_pixels": 5261
+          "coarse_sigma": 64,
+          "feather_sigma": 64,
+          "source_precomposition": false,
+          "clip_fraction": 0.049229939778645836,
+          "range": [
+            -0.07965645020446865,
+            1.0432103867504339
+          ],
+          "reconstruction_error": 3.3306690738754696e-16,
+          "boundary_jump_hard": 0.27175164706895155,
+          "boundary_jump_feather": 0.04215387610896192,
+          "boundary_jump_multiscale": 0.08078306375830442,
+          "final": "images/blend_custom_planet_final.jpg",
+          "mask_area_pixels": 131283,
+          "trial_results": [
+            {
+              "bands": 4,
+              "coarse_sigma": 16,
+              "boundary_jump": 0.08101358983369152,
+              "clip_fraction": 0.015506744384765625
+            },
+            {
+              "bands": 5,
+              "coarse_sigma": 32,
+              "boundary_jump": 0.08081756328670349,
+              "clip_fraction": 0.015199025472005209
+            },
+            {
+              "bands": 6,
+              "coarse_sigma": 64,
+              "boundary_jump": 0.08078306375830442,
+              "clip_fraction": 0.049229939778645836
+            }
+          ],
+          "registration_fits": {
+            "a": {
+              "method": "largest external contour of luminance > threshold; cv2.fitEllipse",
+              "contour_sampling": "cv2.CHAIN_APPROX_NONE",
+              "luminance_threshold": 0.04,
+              "source_center": [
+                1492.97998046875,
+                1491.671630859375
+              ],
+              "source_diameters": [
+                2684.169677734375,
+                2712.718017578125
+              ],
+              "source_angle_degrees": 165.50259399414062,
+              "contour_point_count": 13903,
+              "target_center": [
+                256.0,
+                256.0
+              ],
+              "target_radius": 220.0,
+              "axis_scale_factors": [
+                0.16392406324006703,
+                0.16219894480327357
+              ],
+              "axis_scale_ratio": 1.0106358178771495,
+              "registered_contour_radial_rmse": 0.49208018768435563
+            },
+            "b": {
+              "method": "largest external contour of luminance > threshold; cv2.fitEllipse",
+              "contour_sampling": "cv2.CHAIN_APPROX_NONE",
+              "luminance_threshold": 0.04,
+              "source_center": [
+                1291.4552001953125,
+                1246.3048095703125
+              ],
+              "source_diameters": [
+                2143.986572265625,
+                2144.605224609375
+              ],
+              "source_angle_degrees": 11.080000877380371,
+              "contour_point_count": 6740,
+              "target_center": [
+                256.0,
+                256.0
+              ],
+              "target_radius": 220.0,
+              "axis_scale_factors": [
+                0.20522516590905546,
+                0.20516596478969362
+              ],
+              "axis_scale_ratio": 1.0002885523406502,
+              "registered_contour_radial_rmse": 0.34701310137417685
+            }
+          }
         }
       ]
     },

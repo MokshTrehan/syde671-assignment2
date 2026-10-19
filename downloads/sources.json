@@ -185,7 +185,7 @@
       "mode": "RGB",
       "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
       "provenance": "Original sample file mirrored by ImageIO; provenance and license documented by scikit-image.",
-      "role": "Custom irregular blend background"
+      "role": "Unused alternate input retained from earlier blend experiments"
     },
     {
       "file": "custom/rocket.jpg",
@@ -201,7 +201,7 @@
       "height": 427,
       "mode": "RGB",
       "provenance": "Original scikit-image sample; public-domain status documented in API reference.",
-      "role": "Custom irregular blend background"
+      "role": "Unused alternate input retained from earlier blend experiments"
     },
     {
       "file": "custom/earth.jpg",
@@ -217,7 +217,7 @@
       "height": 3002,
       "mode": "RGB",
       "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-      "role": "Custom hybrid and irregular blend foreground"
+      "role": "Custom curved-seam planet blend and supplementary hybrid limitation study"
     },
     {
       "file": "custom/moon.jpg",
@@ -233,7 +233,7 @@
       "height": 2452,
       "mode": "RGB",
       "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "role": "Custom hybrid and irregular blend foreground",
+      "role": "Custom curved-seam planet blend and supplementary hybrid limitation study",
       "derivative_credit": "Moon image by Gregory H. Revera, CC BY-SA 3.0. Cropped, resized, filtered and composited for this assignment. Moon-derived figures are distributed under CC BY-SA 3.0."
     },
     {
@@ -264,7 +264,7 @@
       "width": 1795,
       "height": 2397,
       "mode": "RGB",
-      "role": "Second custom hybrid pair",
+      "role": "Custom hybrid and irregular-mask cat blend",
       "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
       "derivative_credit": "Tabby photograph by Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Cropped, aligned and filtered for this assignment. Tabby-derived figures are distributed under CC BY-SA 3.0."
     },
@@ -282,7 +282,7 @@
       "width": 1800,
       "height": 2700,
       "mode": "RGB",
-      "role": "Custom astronaut / portrait-cat hybrid",
+      "role": "Custom hybrid and irregular-mask cat blend",
       "provenance": "Downloaded from the photo linked on the credited Unsplash page, resized to 1800 px width by its image service. Full composition retained; further alignment/filtering occurs in the assignment pipeline."
     }
   ],
