@@ -331,7 +331,7 @@
       "width": 5472,
       "height": 3636,
       "mode": "RGB",
-      "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then blends Gaussian/Laplacian bands; no exposure/color edits, local retouching, or source precomposition.",
+      "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then multiplies stored RGB values by global gains (1.12, 1.10, 0.96) before Gaussian/Laplacian blending. Floating-point values are retained without intermediate clipping. There is no local retouching or source precomposition.",
       "role": "Custom multiresolution blend: Mount Rainier terrain and Denali sunset sky"
     }
   ],
