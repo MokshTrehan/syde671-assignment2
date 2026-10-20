@@ -145,6 +145,8 @@ td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: t
 tr:nth-child(even) td { background: #f7f9fc; }
 .credits td { overflow-wrap: anywhere; }
 .credits th:first-child { width: 20%; }
+.credits th:last-child { width: 72px; }
+.credits td:last-child { white-space: nowrap; overflow-wrap: normal; }
 
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .87em; }
 pre {

@@ -249,7 +249,7 @@
       "width": 2687,
       "height": 3356,
       "mode": "RGB",
-      "role": "Second custom hybrid pair"
+      "role": "Custom hybrid: low-frequency source for Obama + Einstein"
     },
     {
       "file": "custom/tabby.jpg",
@@ -264,7 +264,7 @@
       "width": 1795,
       "height": 2397,
       "mode": "RGB",
-      "role": "Custom hybrid and irregular-mask cat blend",
+      "role": "Retained original input from earlier portrait/cat and cat-blend experiments; not used in the final report",
       "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
       "derivative_credit": "Tabby photograph by Joaquim Alves Gaspar (Alvesgaspar), CC BY-SA 3.0. Cropped, aligned and filtered for this assignment. Tabby-derived figures are distributed under CC BY-SA 3.0."
     },
@@ -282,8 +282,57 @@
       "width": 1800,
       "height": 2700,
       "mode": "RGB",
-      "role": "Custom hybrid and irregular-mask cat blend",
+      "role": "Custom hybrid: high-frequency source for astronaut + portrait cat",
       "provenance": "Downloaded from the photo linked on the credited Unsplash page, resized to 1800 px width by its image service. Full composition retained; further alignment/filtering occurs in the assignment pipeline."
+    },
+    {
+      "file": "custom/einstein.jpg",
+      "title": "Albert Einstein portrait (1947)",
+      "creator": "Orren Jack Turner; Library of Congress",
+      "license": "Public domain in the United States (copyright not renewed); Library of Congress reports no known restrictions on publication.",
+      "source_page": "https://www.loc.gov/item/2004671908/",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/1/14/Albert_Einstein_1947.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "77fd7fe864b59cb6dca0b372adb57387fb9f12c20c2b44719f14cc33bcab6162",
+      "bytes": 3843505,
+      "width": 4517,
+      "height": 5522,
+      "mode": "L",
+      "license_url": "https://commons.wikimedia.org/wiki/File:Albert_Einstein_1947.jpg",
+      "provenance": "Downloaded unchanged from the Wikimedia Commons reproduction of Library of Congress item 2004671908 (cph.3b46036). The source record lists no copyright renewal; the download bytes are preserved. The Commons page also lists public-domain status in Canada.",
+      "role": "Custom hybrid: high-frequency source for Obama + Einstein"
+    },
+    {
+      "file": "custom/rainier.jpg",
+      "title": "The Mountain at Dusk: Mount Rainier and Nisqually Glacier at dusk from Paradise",
+      "creator": "U.S. National Park Service",
+      "license": "Public domain: Full Granting Rights (NPS asset metadata)",
+      "source_page": "https://npgallery.nps.gov/AssetDetail/949267D2-C6DA-C977-427D657A5BA1B567",
+      "download_url": "https://npgallery.nps.gov/GetAsset/949267D2-C6DA-C977-427D657A5BA1B567/original.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "3880c41ea2126fa1a4dd4c8e9532d47bdea4d672496fcfa376a5518056c68ebc",
+      "bytes": 3557561,
+      "width": 2560,
+      "height": 1920,
+      "mode": "RGB",
+      "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then blends Gaussian/Laplacian bands; no exposure/color edits, local retouching, or source precomposition.",
+      "role": "Custom multiresolution blend: Mount Rainier terrain and Denali sunset sky"
+    },
+    {
+      "file": "custom/alpenglow.jpg",
+      "title": "Sunset Alpenglow: near Toklat, Denali National Park, July 18, 2017",
+      "creator": "NPS / Emily Mesner",
+      "license": "Public domain: Full Granting Rights (NPS asset metadata)",
+      "source_page": "https://npgallery.nps.gov/AssetDetail/4b7f40dc-bc3e-4b84-9bc2-8256bdb6b4cb",
+      "download_url": "https://npgallery.nps.gov/GetAsset/4b7f40dc-bc3e-4b84-9bc2-8256bdb6b4cb/original.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "2ab818e8c176e484b86ec72019cd90383f4ce081a6f64b0137ed098608c9e1f8",
+      "bytes": 14389950,
+      "width": 5472,
+      "height": 3636,
+      "mode": "RGB",
+      "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then blends Gaussian/Laplacian bands; no exposure/color edits, local retouching, or source precomposition.",
+      "role": "Custom multiresolution blend: Mount Rainier terrain and Denali sunset sky"
     }
   ],
   "other_files": {
