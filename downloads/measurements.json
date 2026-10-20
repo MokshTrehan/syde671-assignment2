@@ -595,7 +595,7 @@
           "Obama and Biden have similar near-frontal poses and open smiles. Monroe and Einstein implement a classic hybrid pairing using separately sourced portraits; the softly lit Monroe source reduces strong lower-face shadows. Einstein is horizontally mirrored to improve the facing direction and cheek-shadow match. Eye centers map to common output landmarks using rotation, uniform scale and translation; his left-to-right landmark order is reversed after reflection. There is no separate face scaling. Different facial proportions and illumination remain visible, particularly at intermediate sizes.",
           "The required Derek + Nutmeg pair uses common eye targets (186,235) and (326,235). A controlled alternative reduces Derek by 0.70 about the common eye midpoint and shifts him upward by 12 pixels, giving human targets (207,223) and (305,223). The cat framing stays fixed. This alternative places the human mouth nearer the muzzle but introduces displaced eyes and a narrow cheek region. The common-eye result is selected for a more coherent cat face.",
           "Each original is resampled once; Einstein\u2019s horizontal reflection is composed with his similarity transform, using bilinear interpolation and replicated borders. Uniform scaling preserves face proportions; there is no local warp or independent neck adjustment. Original landmarks and exact 2 x 3 matrices are saved. The four-cell Derek study crosses the two geometries with reference and selected filters on the same cat framing, so the reduced alternative does not reproduce an earlier crop.",
-          "Increasing the high-pass sigma retains a wider range of detail. Increasing gain strengthens that detail but can emphasize bright and dark edge outlines. Selected (low-pass sigma, high-pass sigma, gain) settings are Derek + Nutmeg: (10, 5, 2); Obama + Biden: (12, 3, 2); Monroe + Einstein: (12, 5, 1.75). Broad low-source facial shading remains; changing the high-band gain cannot remove it.",
+          "Increasing the high-pass sigma retains a wider range of detail. Increasing gain strengthens that detail but can emphasize bright and dark edge outlines. Selected (low-pass sigma, high-pass sigma, gain) settings are Derek + Nutmeg: (10, 5, 2); Obama + Biden: (12, 3, 2); Monroe + Einstein: (12, 3, 1.25). Broad low-source facial shading remains; changing the high-band gain cannot remove it.",
           "The filter-width and gain trials keep alignment fixed. A wider low-pass kernel suppresses more fine structure from the low source. A wider high-pass kernel retains more of the second face at intermediate sizes. Gain controls the contrast of that retained detail. Settings are selected visually from the displayed trials, using the near view and the reduced views together.",
           "Biden\u2019s wrinkles, eyes and fine facial texture are prominent at 512 pixels; Obama\u2019s broader facial structure and smile become clearer at 64 pixels. Their mouth, jaw and collar positions align more naturally than the earlier portrait pair. Intermediate views retain both identities, and some broad forehead shading remains.",
           "For Derek + Nutmeg, changing from reference to selected filters on common-eye alignment changes clipping from 2.07% to 2.83%. With selected filters fixed, replacing the reduced-human alternative with common-eye alignment changes clipping from 4.74% to 2.83%. These measurements describe clipping, not perceptual quality. Common eye alignment improves the coherence of the cat eye and cheek region, but broad human hair and neck shading remains. The 64-pixel view is still mixed; the additional 32-pixel view makes Derek clearer. The custom portrait pairs also use common eye targets.",
@@ -642,7 +642,7 @@
           },
           {
             "path": "images/hybrid_monroe_einstein_summary.jpg",
-            "caption": "Monroe + Einstein: original sources and the final hybrid at 512, 128, 64 and 32 pixels. With reflected alignment fixed, increasing the high-pass width from 3 to 5 pixels and gain from 1.25 to 1.75 strengthens Einstein's eye sockets, nose contours, moustache and wrinkles. The low-pass width remains 12 pixels. Einstein is clearer at 512 pixels; the 64-pixel view remains mixed, while Monroe becomes clearer at 32 pixels. Wider bands or higher gain retain more Einstein at small sizes and emphasize bright edge outlines. Some mixed cheek and jaw shading remains.",
+            "caption": "Monroe + Einstein: original sources and the final hybrid at 512, 128 and 64 pixels. Mirroring Einstein improves agreement in facing direction and cheek-shadow placement. Einstein's wrinkles, moustache and hair remain recognizable at 512 pixels, while Monroe's mouth, eyes and hair shape emerge at 64 pixels. Filter widths 12/3 and gain 1.25 remain fixed in the original-versus-mirrored comparison. Vertical mouth/jaw differences and some facial shading remain.",
             "heading": "Monroe + Einstein",
             "supplement": false,
             "group": "hybrids"
@@ -705,7 +705,7 @@
           },
           {
             "path": "images/hybrid_monroe_einstein_components.jpg",
-            "caption": "Monroe + Einstein: sigma low = 12 px, sigma high = 5 px and gain = 1.75. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "caption": "Monroe + Einstein: sigma low = 12 px, sigma high = 3 px and gain = 1.25. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
             "heading": "Monroe + Einstein \u2014 component detail",
             "supplement": true,
             "group": "hybrids"
@@ -788,9 +788,9 @@
               [
                 "Monroe + Einstein",
                 "12",
-                "5",
-                "1.75",
-                "1.70%"
+                "3",
+                "1.25",
+                "0.35%"
               ]
             ]
           },
@@ -887,8 +887,8 @@
             "high_label": "Einstein",
             "alignment_note": "Einstein is reflected horizontally before common eye alignment. For original width 4517, x becomes 4516-x and the eye order is reversed; reflected left-to-right points are (1716,1897) and (2347,1896). They map to (191,215) and (321,215), the same targets as Monroe. Reflection and similarity are composed into one warp of the original photograph. No local deformation or independent face scaling is used. The classic pairing is generated from separately credited original portraits.",
             "sigma_low": 12,
-            "sigma_high": 5,
-            "gain": 1.75,
+            "sigma_high": 3,
+            "gain": 1.25,
             "target_points": [
               [
                 191,
@@ -901,8 +901,8 @@
             ],
             "high_horizontal_flip": true,
             "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
-            "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
-            "selection_note": "With reflected alignment fixed, increasing the high-pass width from 3 to 5 pixels and gain from 1.25 to 1.75 strengthens Einstein's eye sockets, nose contours, moustache and wrinkles. The low-pass width remains 12 pixels. Einstein is clearer at 512 pixels; the 64-pixel view remains mixed, while Monroe becomes clearer at 32 pixels. Wider bands or higher gain retain more Einstein at small sizes and emphasize bright edge outlines. Some mixed cheek and jaw shading remains."
+            "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
+            "selection_note": "Mirroring Einstein improves agreement in facing direction and cheek-shadow placement. Einstein's wrinkles, moustache and hair remain recognizable at 512 pixels, while Monroe's mouth, eyes and hair shape emerge at 64 pixels. Filter widths 12/3 and gain 1.25 remain fixed in the original-versus-mirrored comparison. Vertical mouth/jaw differences and some facial shading remain."
           }
         }
       },
@@ -1666,43 +1666,43 @@
             512
           ],
           "sigma_low": 12,
-          "sigma_high": 5,
-          "gain": 1.75,
+          "sigma_high": 3,
+          "gain": 1.25,
           "low_color": false,
           "high_color": false,
           "trial_settings": [
             [
+              10,
+              5,
+              1
+            ],
+            [
               12,
               3,
-              1.25
+              1
             ],
             [
               12,
               3,
-              1.75
+              0.75
             ],
             [
-              12,
-              5,
+              20,
+              3,
               1.25
-            ],
-            [
-              12,
-              5,
-              1.75
-            ],
-            [
-              12,
-              5,
-              2
             ],
             [
               12,
               7,
-              1.75
+              1.25
+            ],
+            [
+              12,
+              3,
+              1.25
             ]
           ],
-          "selection_note": "With reflected alignment fixed, increasing the high-pass width from 3 to 5 pixels and gain from 1.25 to 1.75 strengthens Einstein's eye sockets, nose contours, moustache and wrinkles. The low-pass width remains 12 pixels. Einstein is clearer at 512 pixels; the 64-pixel view remains mixed, while Monroe becomes clearer at 32 pixels. Wider bands or higher gain retain more Einstein at small sizes and emphasize bright edge outlines. Some mixed cheek and jaw shading remains.",
+          "selection_note": "Mirroring Einstein improves agreement in facing direction and cheek-shadow placement. Einstein's wrinkles, moustache and hair remain recognizable at 512 pixels, while Monroe's mouth, eyes and hair shape emerge at 64 pixels. Filter widths 12/3 and gain 1.25 remain fixed in the original-versus-mirrored comparison. Vertical mouth/jaw differences and some facial shading remain.",
           "alignment_note": "Einstein is reflected horizontally before common eye alignment. For original width 4517, x becomes 4516-x and the eye order is reversed; reflected left-to-right points are (1716,1897) and (2347,1896). They map to (191,215) and (321,215), the same targets as Monroe. Reflection and similarity are composed into one warp of the original photograph. No local deformation or independent face scaling is used. The classic pairing is generated from separately credited original portraits.",
           "high_horizontal_flip": true,
           "low_matrix": [
@@ -1729,78 +1729,78 @@
               -174.90890642502302
             ]
           ],
-          "clip_fraction": 0.016986846923828125,
+          "clip_fraction": 0.003505706787109375,
           "range": [
-            -0.5946345696636552,
-            2.289989803835695
+            -0.2498828199777655,
+            1.8441465591117492
           ],
           "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
-          "high_half_amplitude_cycles_per_pixel": 0.03747812502585552,
+          "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
           "final": "images/hybrid_monroe_einstein_final.jpg",
           "alignment": "images/hybrid_monroe_einstein_alignment.jpg",
           "components": "images/hybrid_monroe_einstein_components.jpg",
           "near_far": "images/hybrid_monroe_einstein_distance.jpg",
           "trials": [
             {
+              "sigma_low": 10,
+              "sigma_high": 5,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.003204345703125,
+              "high_to_low_contrast_ratio_512": 0.5014114672648297,
+              "high_to_low_contrast_ratio_128": 0.3869034133478752
+            },
+            {
               "sigma_low": 12,
+              "sigma_high": 3,
+              "gain": 1,
+              "selected": false,
+              "clip_fraction": 0.001667022705078125,
+              "high_to_low_contrast_ratio_512": 0.42104934442726144,
+              "high_to_low_contrast_ratio_128": 0.2664071174805387
+            },
+            {
+              "sigma_low": 12,
+              "sigma_high": 3,
+              "gain": 0.75,
+              "selected": false,
+              "clip_fraction": 0.000431060791015625,
+              "high_to_low_contrast_ratio_512": 0.315787008320446,
+              "high_to_low_contrast_ratio_128": 0.19980533831301875
+            },
+            {
+              "sigma_low": 20,
               "sigma_high": 3,
               "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.003505706787109375,
-              "high_to_low_contrast_ratio_512": 0.5263116805340767,
-              "high_to_low_contrast_ratio_128": 0.33300889724082117
-            },
-            {
-              "sigma_low": 12,
-              "sigma_high": 3,
-              "gain": 1.75,
-              "selected": false,
-              "clip_fraction": 0.009204864501953125,
-              "high_to_low_contrast_ratio_512": 0.7368363527477074,
-              "high_to_low_contrast_ratio_128": 0.46621245507508385
-            },
-            {
-              "sigma_low": 12,
-              "sigma_high": 5,
-              "gain": 1.25,
-              "selected": false,
-              "clip_fraction": 0.0067138671875,
-              "high_to_low_contrast_ratio_512": 0.6500961978562729,
-              "high_to_low_contrast_ratio_128": 0.5016405821938245
-            },
-            {
-              "sigma_low": 12,
-              "sigma_high": 5,
-              "gain": 1.75,
-              "selected": true,
-              "clip_fraction": 0.016986846923828125,
-              "high_to_low_contrast_ratio_512": 0.910134676998782,
-              "high_to_low_contrast_ratio_128": 0.7022968143852297
-            },
-            {
-              "sigma_low": 12,
-              "sigma_high": 5,
-              "gain": 2,
-              "selected": false,
-              "clip_fraction": 0.023563385009765625,
-              "high_to_low_contrast_ratio_512": 1.0401539165700366,
-              "high_to_low_contrast_ratio_128": 0.8026249315685906
+              "clip_fraction": 0.0032958984375,
+              "high_to_low_contrast_ratio_512": 0.5976578569338641,
+              "high_to_low_contrast_ratio_128": 0.378157516428272
             },
             {
               "sigma_low": 12,
               "sigma_high": 7,
-              "gain": 1.75,
+              "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.023441314697265625,
-              "high_to_low_contrast_ratio_512": 1.0311490563011505,
-              "high_to_low_contrast_ratio_128": 0.8546764465586503
+              "clip_fraction": 0.009761810302734375,
+              "high_to_low_contrast_ratio_512": 0.7365350402151076,
+              "high_to_low_contrast_ratio_128": 0.610483175553735
+            },
+            {
+              "sigma_low": 12,
+              "sigma_high": 3,
+              "gain": 1.25,
+              "selected": true,
+              "clip_fraction": 0.003505706787109375,
+              "high_to_low_contrast_ratio_512": 0.5263116805340767,
+              "high_to_low_contrast_ratio_128": 0.33300889724082117
             }
           ],
           "refinement_trials": [],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.910134676998782,
-            "selected_128": 0.7022968143852297,
+            "selected_512": 0.5263116805340767,
+            "selected_128": 0.33300889724082117,
             "baseline_512": 0.5014114672648297,
             "baseline_128": 0.3869034133478752
           }
@@ -2964,19 +2964,19 @@
         "width": 512,
         "height": 512,
         "sigma_low": 12,
-        "sigma_high": 5,
-        "gain": 1.75,
+        "sigma_high": 3,
+        "gain": 1.25,
         "low_color": false,
         "high_color": false,
         "low_horizontal_flip": false,
         "high_horizontal_flip": true,
-        "clip_fraction": 0.016986846923828125,
+        "clip_fraction": 0.003505706787109375,
         "range": [
-          -0.5946345696636552,
-          2.289989803835695
+          -0.2498828199777655,
+          1.8441465591117492
         ],
-        "high_to_low_contrast_ratio_512": 0.910134676998782,
-        "high_to_low_contrast_ratio_128": 0.7022968143852297,
+        "high_to_low_contrast_ratio_512": 0.5263116805340767,
+        "high_to_low_contrast_ratio_128": 0.33300889724082117,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
