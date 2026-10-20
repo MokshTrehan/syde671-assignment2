@@ -591,37 +591,37 @@
         "id": "part22",
         "title": "2.2 \u00b7 Hybrid images",
         "paragraphs": [
-          "A hybrid image combines a blurred image with fine detail from a second, aligned image: hybrid = G_sigmaL * A + gain (B - G_sigmaH * B). G_sigma is a Gaussian kernel with standard deviation sigma, and * denotes convolution. A supplies broad structure and B supplies fine detail. The examples are Derek + Nutmeg, astronaut + portrait cat, and Obama + Einstein.",
-          "For the portrait-cat pairs, the initial alignment maps both pairs of eye centers to (170,210) and (330,210). Each two-point similarity transform combines rotation, uniform scale and translation. Exact eye alignment leaves a separate human mouth or chin below the cat muzzle. The broad smile remains in the low-frequency component, so increasing fur contrast alone does not remove it.",
-          "For Derek and the astronaut, the human portrait is scaled by 0.70 about (250,210), while the cat remains fixed. Derek is also shifted upward by 12 pixels. This places the lower human face within the cat muzzle, at the cost of coincident eye landmarks. Obama and Einstein instead share eye targets (196,205) and (316,205); no separate geometry refinement is used. The geometry table records the low-source transforms relative to each pair\u2019s common eye alignment.",
-          "Each original is resampled once with the composed similarity transform, using bilinear interpolation and replicated borders. The face proportions are unchanged. The original landmarks and exact 2 x 3 transformation matrices are saved with the experiment records.",
-          "Increasing the high-pass sigma retains a wider range of detail. A lower gain then softens bright and dark outlines around fur, hair and wrinkles. Together, these changes reduce the etched appearance of the near views. Selected (low-pass sigma, high-pass sigma, gain) settings are Derek + Nutmeg: (8, 3, 1.25); Astronaut + portrait cat: (10, 3, 1.25); Obama + Einstein: (12, 3.5, 1). Broad low-source facial shading remains; adjusting the high band cannot remove it.",
-          "The six filter-width and gain trials keep alignment fixed. Gain 0.75 makes cat detail less prominent. Increasing the astronaut low-pass sigma to 18 blurs the eyes and smile in the reduced view. High-pass sigma 7 retains more cat structure there, making the change in subject less distinct. The controlled comparisons vary alignment and filtering separately. Settings are selected visually for these particular inputs.",
-          "The reduced human scale places the mouth closer to the cat muzzle. Increasing sigma high to 3 and lowering gain to 1.25 produces softer cat detail than the earlier high-gain result. Cat eyes and muzzle remain prominent at 512 pixels; the astronaut is recognizable at 64 pixels. The 128-pixel view is mixed, and broad shading from both sources remains.",
-          "On refined geometry, changing from reference to selected filters changes clipping from 3.86% to 1.49%. With selected filters fixed, refining geometry changes clipping from 0.96% to 1.49%. The smaller human image reduces the separate lower mouth and chin, but displaces the eye landmarks. This is a visual tradeoff, not evidence of more accurate landmark registration. Intermediate views remain mixed.",
+          "A hybrid image combines a blurred image with fine detail from a second, aligned image: hybrid = G_sigmaL * A + gain (B - G_sigmaH * B). G_sigma is a Gaussian kernel with standard deviation sigma, and * denotes convolution. A supplies broad structure and B supplies fine detail. The three examples are Derek + Nutmeg, Obama + Biden, Monroe + Einstein.",
+          "Obama and Biden have similar near-frontal poses and open smiles. Monroe and Einstein implement a classic hybrid pairing using separately sourced portraits; the softly lit Monroe source reduces strong lower-face shadows. Eye centers map to common output landmarks using rotation, uniform scale and translation. There is no separate face scaling. Different facial proportions and illumination remain visible, particularly at intermediate sizes.",
+          "The required Derek + Nutmeg pair uses common eye targets (186,235) and (326,235). A controlled alternative reduces Derek by 0.70 about the common eye midpoint and shifts him upward by 12 pixels, giving human targets (207,223) and (305,223). The cat framing stays fixed. This alternative places the human mouth nearer the muzzle but introduces displaced eyes and a narrow cheek region. The common-eye result is selected for a more coherent cat face.",
+          "Each original is resampled once with its similarity transform, using bilinear interpolation and replicated borders. Uniform scaling preserves face proportions; there is no local warp or independent neck adjustment. Original landmarks and exact 2 x 3 matrices are saved. The four-cell Derek study crosses the two geometries with reference and selected filters on the same cat framing, so the reduced alternative does not reproduce an earlier crop.",
+          "Increasing the high-pass sigma retains a wider range of detail. Increasing gain strengthens that detail but can emphasize bright and dark edge outlines. Selected (low-pass sigma, high-pass sigma, gain) settings are Derek + Nutmeg: (8, 3, 1.25); Obama + Biden: (12, 3, 2); Monroe + Einstein: (12, 3, 1.25). Broad low-source facial shading remains; changing the high-band gain cannot remove it.",
+          "The filter-width and gain trials keep alignment fixed. A wider low-pass kernel suppresses more fine structure from the low source. A wider high-pass kernel retains more of the second face at intermediate sizes. Gain controls the contrast of that retained detail. Settings are selected visually from the displayed trials, using the near view and the reduced views together.",
+          "Biden\u2019s wrinkles, eyes and fine facial texture are prominent at 512 pixels; Obama\u2019s broader facial structure and smile become clearer at 64 pixels. Their mouth, jaw and collar positions align more naturally than the earlier portrait pair. Intermediate views retain both identities, and some broad forehead shading remains.",
+          "For Derek + Nutmeg, changing from reference to selected filters on common-eye alignment changes clipping from 2.07% to 1.21%. With selected filters fixed, replacing the reduced-human alternative with common-eye alignment changes clipping from 2.09% to 1.21%. These measurements describe clipping, not perceptual quality. Common eye alignment improves the coherence of the cat eye and cheek region, but broad human hair and neck shading remains. The 64-pixel view is still mixed; the additional 32-pixel view makes Derek clearer. The custom portrait pairs also use common eye targets.",
           "To inspect the effect, view the largest image at normal size and then move farther away, keeping its display size fixed. The reduced versions provide a second comparison. The apparent change depends on screen size, zoom and eyesight, so the pixel-size sequence does not establish a calibrated viewing distance.",
-          "A Gaussian has no sharp frequency cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For the selected astronaut pair, this is 0.0187 for the low pass and 0.0625 for the complementary high pass. Filtering uses spatial convolution; the Fourier plots show the resulting frequency content.",
+          "A Gaussian has no sharp frequency cutoff. Its approximate half-amplitude frequency is sqrt(2 ln 2) / (2 pi sigma) cycles per output pixel. For Obama + Biden, this is 0.0156 for the low pass and 0.0625 for the complementary high pass. Filtering uses spatial convolution; the Fourier plots show the resulting frequency content.",
           "Each Fourier spectrum displays log(1 + 1000000 |fftshift(fft2(luminance))| / N), where N is the number of image pixels. Division by N permits comparison of differently sized inputs, and both figures use one shared display maximum. No window or mean subtraction is applied before the Fourier transform.",
           "Filtering uses reflected boundaries, and filtering and addition retain signed float64 values. Intermediate bands are neither clipped nor contrast-normalized. Display exports clamp values to [0,1] and quantize them to 8 bits; the table reports the fraction of scalar channel values clipped. Supplementary figures include the remaining alignment, component and parameter comparisons, together with the unsuccessful Earth + Moon hybrid."
         ],
         "figures": [
           {
-            "path": "images/hybrid_astronaut_chelsea_distance.jpg",
-            "caption": "Astronaut + portrait cat: the same hybrid at 512, 256, 128 and 64 pixels, reduced with Lanczos. The reduced human scale places the mouth closer to the cat muzzle. Increasing sigma high to 3 and lowering gain to 1.25 produces softer cat detail than the earlier high-gain result. Cat eyes and muzzle remain prominent at 512 pixels; the astronaut is recognizable at 64 pixels. The 128-pixel view is mixed, and broad shading from both sources remains.",
+            "path": "images/hybrid_obama_biden_distance.jpg",
+            "caption": "Obama + Biden: the same hybrid at 512, 256, 128 and 64 pixels, reduced with Lanczos. Biden\u2019s wrinkles, eyes and fine facial texture are prominent at 512 pixels; Obama\u2019s broader facial structure and smile become clearer at 64 pixels. Their mouth, jaw and collar positions align more naturally than the earlier portrait pair. Intermediate views retain both identities, and some broad forehead shading remains.",
             "heading": "Hybrid appearance at different display sizes",
             "supplement": false,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_astronaut_chelsea_sweep.jpg",
-            "caption": "Astronaut + portrait cat: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
+            "path": "images/hybrid_obama_biden_sweep.jpg",
+            "caption": "Obama + Biden: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
             "heading": "Filter widths and detail gain",
             "supplement": false,
             "group": "hybrids"
           },
           {
             "path": "images/hybrid_fourier_sources.jpg",
-            "caption": "Original and aligned astronaut and portrait-cat inputs. Cyan circles show the alignment landmarks; spectra are calculated from the unmarked images. Both Fourier figures use the same logarithmic scale and display maximum.",
+            "caption": "Original and aligned Obama and Biden inputs. Cyan circles show the alignment landmarks; spectra are calculated from the unmarked images. Both Fourier figures use the same logarithmic scale and display maximum.",
             "heading": "Original sources, alignment and Fourier spectra",
             "supplement": false,
             "group": "hybrids"
@@ -635,15 +635,15 @@
           },
           {
             "path": "images/hybrid_derek_nutmeg_summary.jpg",
-            "caption": "Derek + Nutmeg: original sources and the final hybrid at 512, 128 and 64 pixels. The smaller human scale brings the lower face into the cat muzzle. Increasing sigma high to 3 retains more middle-scale cat structure, while reducing gain to 1.25 softens the etched fine detail. Nutmeg is prominent at 512 pixels; Derek becomes recognizable at 64 pixels. The 128-pixel view remains mixed, and broad human facial shading is not eliminated.",
+            "caption": "Derek + Nutmeg: original sources and the final hybrid at 512, 128, 64 and 32 pixels. Common eye alignment gives a more coherent cat face than independently shrinking the human face. Nutmeg is prominent at 512 pixels; the 64-pixel view remains mixed, and Derek is clearer at 32 pixels. Human hair and broad neck shading remain visible in the near view.",
             "heading": "Derek + Nutmeg",
             "supplement": false,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_obama_einstein_summary.jpg",
-            "caption": "Obama + Einstein: original sources and the final hybrid at 512, 128 and 64 pixels. Einstein\u2019s hair, wrinkles and moustache are prominent at 512 pixels, while Obama\u2019s broader facial structure and smile become clearer at 64 pixels. The 128-pixel view remains mixed. Sigma low 12 softens the broad smile patch; increasing sigma high to 3.5 and reducing gain to 1 softens the engraved detail. Faint low-frequency cheek and neck shading remains in the near view.",
-            "heading": "Obama + Einstein",
+            "path": "images/hybrid_monroe_einstein_summary.jpg",
+            "caption": "Monroe + Einstein: original sources and the final hybrid at 512, 128 and 64 pixels. Einstein's wrinkles, moustache and hair are recognizable at 512 pixels; Monroe's mouth, eyes and hair shape emerge at 64 pixels. The softer illumination of the selected Monroe portrait reduces the dark lower-face shadow seen with a more contrasty portrait. Intermediate views remain mixed, and the result retains differences in face shape and shading.",
+            "heading": "Monroe + Einstein",
             "supplement": false,
             "group": "hybrids"
           },
@@ -663,7 +663,7 @@
           },
           {
             "path": "images/hybrid_derek_nutmeg_refinement.jpg",
-            "caption": "Derek + Nutmeg: a two-by-two comparison of the initial and refined human alignment, each with the reference and selected filter settings. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
+            "caption": "Derek + Nutmeg: a two-by-two comparison of a reduced-human alternative and selected common-eye alignment, each with reference and selected filter settings. The reduced alternative uses the same selected cat framing; it is not a reproduction of an earlier crop. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
             "heading": "Derek + Nutmeg \u00b7 Alignment and filter comparison",
             "supplement": true,
             "group": "hybrids"
@@ -683,51 +683,44 @@
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_astronaut_chelsea_alignment.jpg",
-            "caption": "Astronaut + portrait cat: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
-            "heading": "Astronaut + portrait cat \u00b7 Image registration",
+            "path": "images/hybrid_obama_biden_alignment.jpg",
+            "caption": "Obama + Biden: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Obama + Biden \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_astronaut_chelsea_components.jpg",
-            "caption": "Astronaut + portrait cat: sigma low = 10 px, sigma high = 3 px and gain = 1.25. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
-            "heading": "Astronaut + portrait cat \u2014 component detail",
+            "path": "images/hybrid_obama_biden_components.jpg",
+            "caption": "Obama + Biden: sigma low = 12 px, sigma high = 3 px and gain = 2. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Obama + Biden \u2014 component detail",
             "supplement": true,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_astronaut_chelsea_refinement.jpg",
-            "caption": "Astronaut + portrait cat: a two-by-two comparison of the initial and refined human alignment, each with the reference and selected filter settings. Every result appears at 512, 128 and 64 pixels with the same clipping and Lanczos reduction. The photographs and cat alignment remain fixed.",
-            "heading": "Astronaut + portrait cat \u00b7 Alignment and filter comparison",
+            "path": "images/hybrid_monroe_einstein_alignment.jpg",
+            "caption": "Monroe + Einstein: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
+            "heading": "Monroe + Einstein \u00b7 Image registration",
             "supplement": true,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_obama_einstein_alignment.jpg",
-            "caption": "Obama + Einstein: original and aligned images. Cyan circles mark the eye centers (or disk-limb landmarks) and their output positions.",
-            "heading": "Obama + Einstein \u00b7 Image registration",
+            "path": "images/hybrid_monroe_einstein_components.jpg",
+            "caption": "Monroe + Einstein: sigma low = 12 px, sigma high = 3 px and gain = 1.25. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
+            "heading": "Monroe + Einstein \u2014 component detail",
             "supplement": true,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_obama_einstein_components.jpg",
-            "caption": "Obama + Einstein: sigma low = 12 px, sigma high = 3.5 px and gain = 1. The signed high-pass display is shifted by 0.5 but receives no additional display amplification.",
-            "heading": "Obama + Einstein \u2014 component detail",
+            "path": "images/hybrid_monroe_einstein_sweep.jpg",
+            "caption": "Monroe + Einstein: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
+            "heading": "Monroe + Einstein \u00b7 Filter and gain comparison",
             "supplement": true,
             "group": "hybrids"
           },
           {
-            "path": "images/hybrid_obama_einstein_sweep.jpg",
-            "caption": "Obama + Einstein: filter-width and gain trials, synthesized at 512 x 512 and displayed at 256 and 64 pixels. The selected panel uses the final settings. Alignment remains fixed across the trials.",
-            "heading": "Obama + Einstein \u00b7 Filter and gain comparison",
-            "supplement": true,
-            "group": "hybrids"
-          },
-          {
-            "path": "images/hybrid_obama_einstein_distance.jpg",
-            "caption": "Obama + Einstein: the same hybrid at four display sizes. Intermediate sizes retain features from both sources.",
-            "heading": "Obama + Einstein \u00b7 Display-size comparison",
+            "path": "images/hybrid_monroe_einstein_distance.jpg",
+            "caption": "Monroe + Einstein: the same hybrid at four display sizes. Intermediate sizes retain features from both sources.",
+            "heading": "Monroe + Einstein \u00b7 Display-size comparison",
             "supplement": true,
             "group": "hybrids"
           },
@@ -776,21 +769,21 @@
                 "8",
                 "3",
                 "1.25",
-                "2.29%"
+                "1.21%"
               ],
               [
-                "Astronaut + portrait cat",
-                "10",
+                "Obama + Biden",
+                "12",
+                "3",
+                "2",
+                "0.17%"
+              ],
+              [
+                "Monroe + Einstein",
+                "12",
                 "3",
                 "1.25",
-                "1.49%"
-              ],
-              [
-                "Obama + Einstein",
-                "12",
-                "3.5",
-                "1",
-                "0.36%"
+                "0.25%"
               ]
             ]
           },
@@ -805,21 +798,21 @@
             "rows": [
               [
                 "Derek + Nutmeg",
-                "0.70",
-                "-12",
-                "(194, 198); (306, 198)"
-              ],
-              [
-                "Astronaut + portrait cat",
-                "0.70",
-                "0",
-                "(194, 210); (306, 210)"
-              ],
-              [
-                "Obama + Einstein",
                 "1.00",
                 "0",
-                "(196, 205); (316, 205)"
+                "(186, 235); (326, 235)"
+              ],
+              [
+                "Obama + Biden",
+                "1.00",
+                "0",
+                "(181, 205); (331, 205)"
+              ],
+              [
+                "Monroe + Einstein",
+                "1.00",
+                "0",
+                "(191, 215); (321, 215)"
               ]
             ]
           }
@@ -841,103 +834,67 @@
         "hybrid_settings": {
           "derek_nutmeg": {
             "title": "Derek + Nutmeg",
-            "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by -12 pixels. The human eye centers map to [[194, 198], [306, 198]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
+            "alignment_note": "Both originals map their eye centers to (186,235) and (326,235) on a 512 by 512 canvas. Uniform scale, rotation and translation preserve each subject's proportions. A separate controlled comparison tests a 0.70-scale human alternative shifted upward by 12 pixels, while keeping the cat transform fixed; the final result uses common eyes.",
             "sigma_low": 8,
             "sigma_high": 3,
             "gain": 1.25,
             "target_points": [
               [
-                170,
-                210
+                186,
+                235
               ],
               [
-                330,
-                210
-              ]
-            ],
-            "low_target_points": [
-              [
-                194,
-                198
-              ],
-              [
-                306,
-                198
-              ]
-            ],
-            "high_target_points": [
-              [
-                170,
-                210
-              ],
-              [
-                330,
-                210
+                326,
+                235
               ]
             ],
             "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
             "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
-            "selection_note": "The smaller human scale brings the lower face into the cat muzzle. Increasing sigma high to 3 retains more middle-scale cat structure, while reducing gain to 1.25 softens the etched fine detail. Nutmeg is prominent at 512 pixels; Derek becomes recognizable at 64 pixels. The 128-pixel view remains mixed, and broad human facial shading is not eliminated."
+            "selection_note": "Common eye alignment gives a more coherent cat face than independently shrinking the human face. Nutmeg is prominent at 512 pixels; the 64-pixel view remains mixed, and Derek is clearer at 32 pixels. Human hair and broad neck shading remain visible in the near view."
           },
-          "astronaut_chelsea": {
-            "title": "Astronaut + portrait cat",
-            "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by 0 pixels. The human eye centers map to [[194, 210], [306, 210]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
-            "sigma_low": 10,
-            "sigma_high": 3,
-            "gain": 1.25,
-            "target_points": [
-              [
-                170,
-                210
-              ],
-              [
-                330,
-                210
-              ]
-            ],
-            "low_target_points": [
-              [
-                194,
-                210
-              ],
-              [
-                306,
-                210
-              ]
-            ],
-            "high_target_points": [
-              [
-                170,
-                210
-              ],
-              [
-                330,
-                210
-              ]
-            ],
-            "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
-            "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
-            "selection_note": "The reduced human scale places the mouth closer to the cat muzzle. Increasing sigma high to 3 and lowering gain to 1.25 produces softer cat detail than the earlier high-gain result. Cat eyes and muzzle remain prominent at 512 pixels; the astronaut is recognizable at 64 pixels. The 128-pixel view is mixed, and broad shading from both sources remains."
-          },
-          "obama_einstein": {
-            "title": "Obama + Einstein",
-            "alignment_note": "Two-point similarity transforms map the eye centers in both originals to (196,205) and (316,205) on a 512 by 512 canvas. Uniform scaling, rotation and translation preserve facial proportions. The common eye targets are sufficient for this face-to-face pair; no local feature editing or separate geometry refinement is used.",
+          "obama_biden": {
+            "title": "Obama + Biden",
+            "low_label": "Obama",
+            "high_label": "Biden",
+            "alignment_note": "The official portraits were selected for similar near-frontal poses, tooth-showing smiles, lighting, and collared clothing. Two-point similarity transforms map both original eye pairs to (181,205) and (331,205) on a 512 x 512 canvas. Each original is sampled once using rotation, uniform scale and translation. No relative facial scaling, local warp, masking or facial retouching is used.",
             "sigma_low": 12,
-            "sigma_high": 3.5,
-            "gain": 1,
+            "sigma_high": 3,
+            "gain": 2,
             "target_points": [
               [
-                196.0,
+                181,
                 205
               ],
               [
-                316.0,
+                331,
                 205
               ]
             ],
             "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
-            "high_half_amplitude_cycles_per_pixel": 0.053540178608365026,
-            "selection_note": "Einstein\u2019s hair, wrinkles and moustache are prominent at 512 pixels, while Obama\u2019s broader facial structure and smile become clearer at 64 pixels. The 128-pixel view remains mixed. Sigma low 12 softens the broad smile patch; increasing sigma high to 3.5 and reducing gain to 1 softens the engraved detail. Faint low-frequency cheek and neck shading remains in the near view."
+            "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
+            "selection_note": "Biden\u2019s wrinkles, eyes and fine facial texture are prominent at 512 pixels; Obama\u2019s broader facial structure and smile become clearer at 64 pixels. Their mouth, jaw and collar positions align more naturally than the earlier portrait pair. Intermediate views retain both identities, and some broad forehead shading remains."
+          },
+          "monroe_einstein": {
+            "title": "Monroe + Einstein",
+            "low_label": "Monroe",
+            "high_label": "Einstein",
+            "alignment_note": "Two-point similarity transforms map both eye pairs to (191,215) and (321,215) on a 512 by 512 canvas. Both use the same targets, with no relative face scaling or local deformation. This is an implementation of the classic Monroe/Einstein pairing, generated from the separately credited original portraits rather than a downloaded hybrid.",
+            "sigma_low": 12,
+            "sigma_high": 3,
+            "gain": 1.25,
+            "target_points": [
+              [
+                191,
+                215
+              ],
+              [
+                321,
+                215
+              ]
+            ],
+            "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
+            "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
+            "selection_note": "Einstein's wrinkles, moustache and hair are recognizable at 512 pixels; Monroe's mouth, eyes and hair shape emerge at 64 pixels. The softer illumination of the selected Monroe portrait reduces the dark lower-face shadow seen with a more contrasty portrait. Intermediate views remain mixed, and the result retains differences in face shape and shading."
           }
         }
       },
@@ -945,13 +902,13 @@
         "id": "hybrid-color",
         "title": "Color in hybrid images",
         "paragraphs": [
-          "Four variants retain color in neither source, only the low-frequency source, only the high-frequency source, or both. Color in the low-frequency source preserves the astronaut\u2019s broad skin and hair regions. Color in the high-frequency source appears around fine cat edges, but the filtering removes the broad coat color.",
-          "For this pair, color in the low-frequency source agrees with the face visible at smaller sizes, while grayscale fur remains visible at larger sizes. Retaining color in both sources adds competing hues around some cat edges. The main examples use grayscale so that the change in visible subject can be assessed without this broad color difference."
+          "Four variants retain color in neither source, only the low-frequency source, only the high-frequency source, or both. Low-frequency color preserves Obama\u2019s broad skin, hair and clothing regions. High-frequency color appears mainly around Biden\u2019s fine facial and hair edges because filtering suppresses broad color variation.",
+          "Color in the low-frequency source agrees with the face visible at smaller sizes, while grayscale detail from Biden remains visible at larger sizes. Keeping both sources in color combines their chromatic structure at different scales. The main examples use grayscale so that the change in visible subject can be assessed without the broad color difference."
         ],
         "figures": [
           {
             "path": "images/hybrid_color_comparison.jpg",
-            "caption": "Four color variants with identical alignment, filter widths and gain. Luminance conversion uses weights 0.2126, 0.7152 and 0.0722. Color in the low-frequency source preserves broad skin and hair regions; color in the high-frequency source remains mainly around cat edges and fur.",
+            "caption": "Four color variants of Obama + Biden with identical alignment, filter widths and gain. Luminance conversion uses weights 0.2126, 0.7152 and 0.0722. Low-frequency color preserves Obama\u2019s broad skin, hair and clothing regions; high-frequency color remains mainly around Biden\u2019s fine facial and hair edges.",
             "heading": "Color by frequency band",
             "supplement": false,
             "group": "hybrids"
@@ -1048,60 +1005,60 @@
         "id": "blend-custom",
         "title": "Custom blends with irregular masks",
         "paragraphs": [
-          "The mountain-sky composite places Mount Rainier below a warm cloud field photographed above Denali. A 38-vertex polygon follows the visible cloud and mountain silhouette. It retains Rainier\u2019s summit, glacier, foreground trees and the bright cloud on the left.",
+          "The sandstone-arch composite places snowy peaks and the partially frozen Lake McDonald behind the North Window arch. The warm sandstone, golden peaks and blue water make the two source contributions distinct. A saved 122-vertex polygon follows the arch opening and foreground ledge. White selects the lake photograph, A; black selects the arch, B.",
           "The Earth-Moon composite joins oceans and clouds to lunar craters along an S-shaped boundary. Their similar outlines support this composite, although the same photographs do not produce a clear change of subject in the hybrid experiment.",
           "The largest source contours above luminance 0.04 are fitted with cv2.fitEllipse and mapped affinely to a circle of radius 220 pixels centered at (256,256). The Earth mapping uses axis scale factors differing by approximately 1%; the Moon mapping is nearly uniform.",
-          "The landscape photographs are independently cropped and uniformly scaled using saved framing points. These points set the output field of view; they are not corresponding features of the same scene. Both examples sample the original photographs with bilinear interpolation and replicated borders. Thresholding measures the planetary outlines only. The selected Denali crop uses uniform stored-RGB gains (1.12, 1.10, 0.96) to reduce its mauve-blue cast; no intermediate clipping, local retouching or prior background transfer precedes blending. Rainier, Earth and Moon have no photometric adjustment.",
+          "The landscape photographs are independently cropped and uniformly scaled using saved framing points. These points set the output field of view; they are not corresponding features of the same scene. Both examples sample the original photographs with bilinear interpolation and replicated borders. Planetary registration uses luminance thresholding to measure the disk outlines. The sky boundary in the framed arch helped trace the saved aperture polygon; the original image pixels remain the inputs to blending. No photometric adjustment or prior background transfer is used for either final composite.",
           "The hard cut, single-scale feathering and multiresolution blend use identical input arrays and the same underlying binary selection. Feathering applies the exact coarsest Gaussian mask to the full images, so fine details and broad colors mix over the same wide transition. Multiresolution blending applies the corresponding Gaussian mask to each Laplacian band.",
-          "A binary finest mask leaves visible polygon corners at the landscape boundary and a contrast change where the planetary boundary meets the outer edge. Initial-mask Gaussian widths of 0, 2, 4, 8, 12 and 16 pixels are compared for each example. Landscape widths of 0, 2 and 4 give similar results; sigma 2 softens corners while preserving the summit outline. Earth-Moon uses sigma 8 to soften the outer-edge join.",
-          "Only the selection weights change; the source photographs and image detail bands remain fixed. Further smoothing at stack width sigma gives a nominal combined width of sqrt(initial_sigma\u00b2 + sigma\u00b2). The landscape mask widths are 2, 2.8, 4.5, 8.2, 16.1 and 32.1 pixels. Earth-Moon uses 8, 8.2, 8.9, 11.3, 17.9, 33.0 and 64.5 pixels. The oraple retains a binary finest mask.",
-          "The landscape uses five detail bands with sigma = 2, 4, 8, 16 and 32 pixels. The Earth-Moon blend uses six, adding sigma = 64 pixels, and both include the coarse residual. Supplementary comparisons test four, five and six bands while keeping all other inputs fixed.",
-          "For the landscape, the band-count differences are modest. A maximum sigma of 16 pixels leaves a narrower color transition. Sigma 32 spreads this transition locally; sigma 64 transfers more sky color over the snow. The Earth-Moon blend uses sigma 64 because the brightness mismatch extends across a large part of the disk.",
-          "The landscape hard cut exposes the polygon above the summit and left cloud. Broad feathering mixes cloud texture through the ridge and makes the summit partly transparent. Multiresolution blending retains more local rock and snow contrast while spreading the broad sky-color transition. Some original cloud cover remains around the summit. Clouds and craters also remain more localized at the Earth-Moon boundary. These observations concern the visible transitions in these two examples.",
+          "The landscape uses an initial-mask Gaussian width of 1 pixel to soften pixel-level corners along the traced contour. Its controlled comparison tests widths 0, 0.5, 1, 2, 4, 8 pixels. Broader masks mix rock and lake texture across a wider region. The Earth-Moon comparison tests 0, 2, 4, 8, 12 and 16 pixels; sigma 8 reduces the contrast change where the internal boundary meets the disk outline.",
+          "Only the selection weights change; the source photographs and image detail bands remain fixed. Further smoothing at stack width sigma gives a nominal combined width of sqrt(initial_sigma\u00b2 + sigma\u00b2). The landscape mask widths are 1.0, 2.2, 4.1, 8.1, 16.0 pixels. Earth-Moon uses 8, 8.2, 8.9, 11.3, 17.9, 33.0 and 64.5 pixels. The oraple retains a binary finest mask.",
+          "The landscape uses four detail bands with sigma = 2, 4, 8 and 16 pixels. The Earth-Moon blend uses six, extending this sequence with sigma = 32 and 64 pixels, and both include the coarse residual. Supplementary comparisons test three, four and five bands for the landscape and four, five and six for Earth-Moon, while keeping all other inputs fixed.",
+          "Four landscape detail bands balance the lower boundary transition against retention of rock and mountain detail. Three bands give a narrower transition; five spread more low-frequency color into the opening and foreground. The Earth-Moon blend uses sigma 64 because the brightness mismatch extends across a large part of the disk.",
+          "The landscape hard cut produces a pasted edge along the foreground ledge. Broad feathering makes the rock partly transparent and introduces ghosted background detail. Multiresolution blending retains more rock and mountain texture while softening the broad transition. Some lightening remains at the lower-left seam. Clouds and craters also remain more localized at the Earth-Moon boundary. These observations concern the visible transitions in these two examples.",
           "The boundary-jump measurement is the mean absolute RGB difference between adjacent pixels on opposite sides of the original binary contour. It includes natural image texture as well as the seam. Feathering mixes detail across one broad transition; a smaller jump alone does not establish a better-looking or physically realistic composite.",
-          "RGB is used for the final composites. Warm clouds and orange-green foreground trees give the mountain-sky example stronger regional color differences. Blue oceans distinguish Earth from the nearly neutral Moon. These differences are less distinct in grayscale, although the boundaries remain smoothed.",
-          "Multiresolution blending does not correct scene geometry or illumination. The landscape combines different places. Its selected crop and uniform RGB gains improve visual consistency but do not estimate physically matched illumination. It is not a photograph of a real scene. Lunar features likewise do not continue Earth\u2019s clouds. Smoothing the finest mask reduces the abrupt outer-edge join, but the Earth-Moon composite remains an imaginary surface.",
+          "RGB is used for the final composites. Orange sandstone, golden peaks and blue water make the landscape\u2019s two source regions easy to distinguish. Blue oceans distinguish Earth from the nearly neutral Moon. These differences are less distinct in grayscale, although the boundaries remain smoothed.",
+          "Multiresolution blending does not correct scene geometry or illumination. The landscape combines different places. Warm light in both originals makes them visually compatible, but their illumination and perspective are not physically calibrated. It is not a photograph of a real scene. Lunar features likewise do not continue Earth\u2019s clouds. Smoothing the finest mask reduces the abrupt outer-edge join, but the Earth-Moon composite remains an imaginary surface.",
           "Processing retains signed float64 values. Only the final display images are clipped to [0,1]."
         ],
         "figures": [
           {
             "path": "images/blend_custom_landscape_inputs.jpg",
-            "caption": "Mountain-sky blending: original and framed photographs. Cyan circles mark independent framing controls that set cropping and uniform scale; they are not correspondences between the two places. After framing, B uses uniform RGB gains (1.12, 1.1, 0.96) in stored RGB space, with no intermediate clipping. The original photographs above remain unmodified.  Mount Rainier: U.S. National Park Service, public domain. Denali sunset: NPS / Emily Mesner, public domain. The composite joins photographs of different places; it is not a record of a real scene.",
-            "heading": "Mountain-sky blending \u00b7 Inputs and framing"
+            "caption": "Sandstone arch and alpine lake: original and framed photographs. Cyan circles mark independent framing controls used for cropping and uniform scaling; they are not correspondences between the two places. The lake is A, and the sandstone arch is B.  North Window arch: Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0. Lake McDonald: David Restivo/NPS (GlacierNPS), CC BY 2.0. The adapted composite and arch-derived figures are distributed under CC BY-SA 3.0. It joins photographs of different places and is not a record of a real scene.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Inputs and framing"
           },
           {
             "path": "images/blend_custom_landscape_comparison.jpg",
-            "caption": "Mountain-sky blending: three methods using the same framed inputs and underlying binary selection. The initial mask is smoothed at sigma=2 pixels before the mask stack is constructed. A warmer Denali crop and modest global RGB gains reduce the mauve-blue mismatch against the pale golden cloud in the Rainier photograph. A 2-pixel initial Gaussian softens the polygon corners. Multiresolution blending retains more summit and glacier detail than broad feathering. This improves visual consistency without establishing physically matched illumination.",
-            "heading": "Mountain-sky blending \u00b7 Blending methods"
+            "caption": "Sandstone arch and alpine lake: three methods using the same framed inputs and underlying binary selection. The initial mask is smoothed at sigma=1 pixels before the mask stack is constructed. The warm snowy peaks and blue lake remain distinct from the orange sandstone foreground. A polygon traces the arch opening and foreground ledge; white selects the lake. Four detail bands soften the lower boundary while retaining more rock and mountain texture than broad feathering. Some lightening remains along the lower-left seam.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Blending methods"
           },
           {
             "path": "images/blend_custom_landscape_detail.jpg",
-            "caption": "The same boundary crop, x=150:510, y=110:275, shown at one display scale for all three methods. The hard cut remains visible even with the corrected sky. Broad feathering reduces the discontinuity but fades summit contrast. Multiresolution blending preserves more rock and snow detail while spreading the broad color transition. Some original cloud cover remains around the summit.",
-            "heading": "Mountain-sky blending \u00b7 Boundary detail",
+            "caption": "The same boundary crop, x=0:300, y=270:440, shown at one display scale for all three methods. The hard cut produces a pasted edge along the foreground ledge. Broad feathering makes the rock partly transparent and introduces ghosted background detail. Multiresolution blending retains more rock texture while reducing the abrupt transition, although a narrow region of lower-left seam lightening remains.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Boundary detail",
             "supplement": true
           },
           {
             "path": "images/blend_custom_landscape_maskstack.jpg",
-            "caption": "Mountain-sky blending: Gaussian mask levels, including the coarse residual weight, all at 512 x 512 pixels. Each stack Gaussian acts on the initially smoothed mask. Labels show the nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2); the weights use the discrete convolutions.",
-            "heading": "Mountain-sky blending \u00b7 Complete mask stack",
+            "caption": "Sandstone arch and alpine lake: Gaussian mask levels, including the coarse residual weight, all at 512 x 512 pixels. Each stack Gaussian acts on the initially smoothed mask. Labels show the nominal equivalent widths sqrt(initial_sigma^2 + stack_sigma^2); the weights use the discrete convolutions.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Complete mask stack",
             "supplement": true
           },
           {
             "path": "images/blend_custom_landscape_sweep.jpg",
-            "caption": "The number of detail bands varies while the sources, framing, mask and base sigma remain fixed. Five bands give a coarsest image sigma of 32 pixels. Four leave a narrower color transition, while six spread the sky color farther into the snow. Mask width and band count are unchanged during the framing and RGB-gain comparison.",
-            "heading": "Mountain-sky blending \u00b7 Number of detail bands",
+            "caption": "The number of detail bands varies while the sources, framing, mask and base sigma remain fixed. Four bands give a coarsest image sigma of 16 pixels. Three leave a tighter lower boundary; five spread more low-frequency color into the opening and foreground. Four give the best visual balance for these sources. The mask and all other settings remain fixed.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Number of detail bands",
             "supplement": true
           },
           {
             "path": "images/blend_custom_landscape_mask_sweep.jpg",
-            "caption": "Initial-mask comparison, x=150:510, y=110:275. Sources, alignment and all 5 image detail bands stay fixed. Sigma 2 reduces hard polygon corners without mixing as wide a region of snow and clouds. Larger widths increasingly soften the summit outline. The finest image bands and original photographs remain fixed. Only the selection weights vary.",
-            "heading": "Mountain-sky blending \u00b7 Initial mask width",
+            "caption": "Initial-mask comparison, x=0:300, y=280:440. Sources, alignment and all 4 image detail bands stay fixed. Sigma 1 softens pixel-level corners in the traced contour while preserving the rock edge. Larger widths mix rock and lake texture over a wider region. The photographs and image bands stay fixed. Only the selection weights vary.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Initial mask width",
             "supplement": true
           },
           {
             "path": "images/blend_custom_landscape_process.jpg",
-            "caption": "Mountain-sky blending: rows 1\u20133 show masked A, masked B and their sum at Laplacian levels 0, 2 and 4. The final row reconstructs each contribution and the result using all detail bands plus the coarse residual, following Burt\u2013Adelson Figure 10. Each detail row uses one shared symmetric contrast scale; reconstructed rows retain actual intensity.",
-            "heading": "Mountain-sky blending \u00b7 Multiresolution contributions"
+            "caption": "Sandstone arch and alpine lake: rows 1\u20133 show masked A, masked B and their sum at Laplacian detail levels 0, 2 and 3. The final row reconstructs each contribution and the result using all detail bands plus the coarse residual, following Burt\u2013Adelson Figure 10. Each detail row uses one shared symmetric contrast scale; reconstructed rows retain actual intensity.",
+            "heading": "Sandstone arch and alpine lake \u00b7 Multiresolution contributions"
           },
           {
             "path": "images/blend_custom_planet_inputs.jpg",
@@ -1141,12 +1098,6 @@
             "path": "images/blend_custom_color_comparison.jpg",
             "caption": "Luminance and RGB results with the same registration, masks and stack settings. Luminance is 0.2126R + 0.7152G + 0.0722B; RGB channels are blended independently.",
             "heading": "Color experiment \u00b7 Luminance and RGB"
-          },
-          {
-            "path": "images/blend_custom_landscape_lighting_refinement.jpg",
-            "caption": "Controlled lighting refinement: original Denali crop without color adjustment; selected crop without adjustment; selected crop with uniform RGB gains (1.12, 1.1, 0.96). Rainier, the polygon, initial-mask sigma 2, all 5 detail bands and the coarse residual remain fixed. The correction reduces the mauve-blue cast without local retouching. It is an empirical adjustment of stored RGB, not a physical relighting model. All panels retain signed values until display export.",
-            "heading": "Mountain-sky blending \u00b7 Lighting refinement",
-            "supplement": true
           }
         ],
         "tables": [
@@ -1154,7 +1105,7 @@
             "title": "Blend settings and mean boundary differences",
             "columns": [
               "Parameter or measurement",
-              "Mountain-sky blending",
+              "Sandstone arch and alpine lake",
               "Earth-Moon blending"
             ],
             "rows": [
@@ -1165,32 +1116,32 @@
               ],
               [
                 "Detail bands",
-                "5",
+                "4",
                 "6"
               ],
               [
                 "Maximum image sigma (px)",
-                "32",
+                "16",
                 "64"
               ],
               [
                 "Boundary jump: hard cut",
-                "0.2366",
+                "0.2752",
                 "0.2718"
               ],
               [
                 "Boundary jump: feathering",
-                "0.0266",
+                "0.1572",
                 "0.0422"
               ],
               [
                 "Boundary jump: multiresolution",
-                "0.0306",
+                "0.1669",
                 "0.0424"
               ],
               [
                 "Scalar values clipped",
-                "0.20%",
+                "0.13%",
                 "4.92%"
               ]
             ]
@@ -1237,12 +1188,12 @@
           ],
           "target_points": [
             [
-              170,
-              210
+              186,
+              235
             ],
             [
-              330,
-              210
+              326,
+              235
             ]
           ],
           "shape": [
@@ -1286,61 +1237,55 @@
               1.25
             ]
           ],
-          "selection_note": "The smaller human scale brings the lower face into the cat muzzle. Increasing sigma high to 3 retains more middle-scale cat structure, while reducing gain to 1.25 softens the etched fine detail. Nutmeg is prominent at 512 pixels; Derek becomes recognizable at 64 pixels. The 128-pixel view remains mixed, and broad human facial shading is not eliminated.",
-          "low_target_points": [
-            [
-              194,
-              198
-            ],
-            [
-              306,
-              198
-            ]
-          ],
-          "high_target_points": [
-            [
-              170,
-              210
-            ],
-            [
-              330,
-              210
-            ]
-          ],
+          "selection_note": "Common eye alignment gives a more coherent cat face than independently shrinking the human face. Nutmeg is prominent at 512 pixels; the 64-pixel view remains mixed, and Derek is clearer at 32 pixels. Human hair and broad neck shading remain visible in the near view.",
           "refinement_baseline": {
             "sigma_low": 6,
             "sigma_high": 1.5,
             "gain": 2.5
           },
-          "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by -12 pixels. The human eye centers map to [[194, 198], [306, 198]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
+          "alignment_note": "Both originals map their eye centers to (186,235) and (326,235) on a 512 by 512 canvas. Uniform scale, rotation and translation preserve each subject's proportions. A separate controlled comparison tests a 0.70-scale human alternative shifted upward by 12 pixels, while keeping the cat transform fixed; the final result uses common eyes.",
+          "geometry_reference": {
+            "low_target_points": [
+              [
+                207,
+                223
+              ],
+              [
+                305,
+                223
+              ]
+            ],
+            "relative_scale": 0.7,
+            "vertical_shift_px": -12
+          },
           "low_matrix": [
             [
-              0.798768599281683,
-              -0.07470497691123654,
-              -19.932067727039538
+              0.9984607491021037,
+              -0.09338122113904568,
+              -81.4150846587994
             ],
             [
-              0.07470497691123654,
-              0.798768599281683,
-              -99.18789122626993
+              0.09338122113904568,
+              0.9984607491021037,
+              -136.48486403283738
             ]
           ],
           "high_matrix": [
             [
-              0.8387870481411683,
-              0.416652389926332,
-              -454.1014219633373
+              0.7339386671235223,
+              0.36457084118554056,
+              -360.08874421792007
             ],
             [
-              -0.416652389926332,
-              0.8387870481411683,
-              216.7431899948604
+              -0.36457084118554056,
+              0.7339386671235223,
+              240.90029124550287
             ]
           ],
-          "clip_fraction": 0.022876739501953125,
+          "clip_fraction": 0.012104034423828125,
           "range": [
-            -0.25540072486012205,
-            1.2045863931645342
+            -0.17654758901793866,
+            1.3631128870279094
           ],
           "low_half_amplitude_cycles_per_pixel": 0.0234238281411597,
           "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
@@ -1354,176 +1299,186 @@
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.0189056396484375,
-              "high_to_low_contrast_ratio_512": 0.3186054243640332,
-              "high_to_low_contrast_ratio_128": 0.2399244525965295
+              "clip_fraction": 0.0100250244140625,
+              "high_to_low_contrast_ratio_512": 0.2967723554060942,
+              "high_to_low_contrast_ratio_128": 0.21899535966267752
             },
             {
               "sigma_low": 8,
               "sigma_high": 1.5,
               "gain": 2.25,
               "selected": false,
-              "clip_fraction": 0.030612945556640625,
-              "high_to_low_contrast_ratio_512": 0.403780175876227,
-              "high_to_low_contrast_ratio_128": 0.15207603452383334
+              "clip_fraction": 0.016002655029296875,
+              "high_to_low_contrast_ratio_512": 0.391273841185936,
+              "high_to_low_contrast_ratio_128": 0.1378834202458772
             },
             {
               "sigma_low": 8,
               "sigma_high": 3,
               "gain": 0.75,
               "selected": false,
-              "clip_fraction": 0.012104034423828125,
-              "high_to_low_contrast_ratio_512": 0.1936455709953701,
-              "high_to_low_contrast_ratio_128": 0.11964191036838406
+              "clip_fraction": 0.006679534912109375,
+              "high_to_low_contrast_ratio_512": 0.18198651941844327,
+              "high_to_low_contrast_ratio_128": 0.10906478031622535
             },
             {
               "sigma_low": 14,
               "sigma_high": 3,
               "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.016124725341796875,
-              "high_to_low_contrast_ratio_512": 0.34383842666529335,
-              "high_to_low_contrast_ratio_128": 0.21244155627388753
+              "clip_fraction": 0.00726318359375,
+              "high_to_low_contrast_ratio_512": 0.32234280757156214,
+              "high_to_low_contrast_ratio_128": 0.19318460142721786
             },
             {
               "sigma_low": 8,
               "sigma_high": 7,
               "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.032154083251953125,
-              "high_to_low_contrast_ratio_512": 0.4351656611112481,
-              "high_to_low_contrast_ratio_128": 0.3521488710979353
+              "clip_fraction": 0.01847076416015625,
+              "high_to_low_contrast_ratio_512": 0.4041363968540646,
+              "high_to_low_contrast_ratio_128": 0.3217350311353733
             },
             {
               "sigma_low": 8,
               "sigma_high": 3,
               "gain": 1.25,
               "selected": true,
-              "clip_fraction": 0.022876739501953125,
-              "high_to_low_contrast_ratio_512": 0.3227426183256169,
-              "high_to_low_contrast_ratio_128": 0.19940318412502764
+              "clip_fraction": 0.012104034423828125,
+              "high_to_low_contrast_ratio_512": 0.3033108656974054,
+              "high_to_low_contrast_ratio_128": 0.1817746336682892
             }
           ],
           "refinement_trials": [
             {
-              "label": "Common eye targets / reference filters",
+              "label": "Reduced human / reference filters",
               "sigma_low": 6,
               "sigma_high": 1.5,
               "gain": 2.5,
+              "geometry": "reduced",
+              "filter_set": "reference",
               "low_target_points": [
                 [
-                  170,
-                  210
+                  207,
+                  223
                 ],
                 [
-                  330,
-                  210
+                  305,
+                  223
                 ]
               ],
-              "clip_fraction": 0.019474029541015625
+              "clip_fraction": 0.036525726318359375
             },
             {
-              "label": "Common eye targets / selected filters",
+              "label": "Reduced human / selected filters",
               "sigma_low": 8,
               "sigma_high": 3,
               "gain": 1.25,
+              "geometry": "reduced",
+              "filter_set": "selected",
               "low_target_points": [
                 [
-                  170,
-                  210
+                  207,
+                  223
                 ],
                 [
-                  330,
-                  210
+                  305,
+                  223
                 ]
               ],
-              "clip_fraction": 0.011066436767578125
+              "clip_fraction": 0.0208587646484375
             },
             {
-              "label": "Refined geometry / reference filters",
+              "label": "Common eyes (selected) / reference filters",
               "sigma_low": 6,
               "sigma_high": 1.5,
               "gain": 2.5,
+              "geometry": "common",
+              "filter_set": "reference",
               "low_target_points": [
                 [
-                  194,
-                  198
+                  186,
+                  235
                 ],
                 [
-                  306,
-                  198
+                  326,
+                  235
                 ]
               ],
-              "clip_fraction": 0.037761688232421875
+              "clip_fraction": 0.020660400390625
             },
             {
-              "label": "Refined geometry / selected filters",
+              "label": "Common eyes (selected) / selected filters",
               "sigma_low": 8,
               "sigma_high": 3,
               "gain": 1.25,
+              "geometry": "common",
+              "filter_set": "selected",
               "low_target_points": [
                 [
-                  194,
-                  198
+                  186,
+                  235
                 ],
                 [
-                  306,
-                  198
+                  326,
+                  235
                 ]
               ],
-              "clip_fraction": 0.022876739501953125
+              "clip_fraction": 0.012104034423828125
             }
           ],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.3227426183256169,
-            "selected_128": 0.19940318412502764,
-            "baseline_512": 0.3186054243640332,
-            "baseline_128": 0.2399244525965295
+            "selected_512": 0.3033108656974054,
+            "selected_128": 0.1817746336682892,
+            "baseline_512": 0.2967723554060942,
+            "baseline_128": 0.21899535966267752
           }
         },
         {
-          "id": "astronaut_chelsea",
-          "title": "Astronaut + portrait cat",
-          "low_path": "data/custom/astronaut.png",
-          "high_path": "data/custom/portrait_cat.jpg",
+          "id": "obama_biden",
+          "title": "Obama + Biden",
+          "low_label": "Obama",
+          "high_label": "Biden",
+          "low_path": "data/custom/obama.jpg",
+          "high_path": "data/custom/biden.jpg",
           "low_points": [
             [
-              203,
-              101
+              1185,
+              567
             ],
             [
-              247,
-              102
+              1477,
+              568
             ]
           ],
           "high_points": [
             [
-              780,
-              688
+              1036,
+              904
             ],
             [
-              1042,
-              692
+              1368,
+              900
             ]
           ],
           "target_points": [
             [
-              170,
-              210
+              181,
+              205
             ],
             [
-              330,
-              210
+              331,
+              205
             ]
           ],
           "shape": [
             512,
             512
           ],
-          "sigma_low": 10,
+          "sigma_low": 12,
           "sigma_high": 3,
-          "gain": 1.25,
+          "gain": 2,
           "low_color": false,
           "high_color": false,
           "trial_settings": [
@@ -1533,241 +1488,149 @@
               1
             ],
             [
-              10,
-              1.5,
-              2.7
+              12,
+              3,
+              1
             ],
             [
-              10,
+              12,
               3,
               0.75
             ],
             [
-              18,
+              20,
               3,
-              1.25
+              2
             ],
             [
-              10,
+              12,
               7,
-              1.25
+              2
             ],
             [
-              10,
+              12,
               3,
-              1.25
+              2
             ]
           ],
-          "selection_note": "The reduced human scale places the mouth closer to the cat muzzle. Increasing sigma high to 3 and lowering gain to 1.25 produces softer cat detail than the earlier high-gain result. Cat eyes and muzzle remain prominent at 512 pixels; the astronaut is recognizable at 64 pixels. The 128-pixel view is mixed, and broad shading from both sources remains.",
-          "low_target_points": [
-            [
-              194,
-              210
-            ],
-            [
-              306,
-              210
-            ]
-          ],
-          "high_target_points": [
-            [
-              170,
-              210
-            ],
-            [
-              330,
-              210
-            ]
-          ],
-          "refinement_baseline": {
-            "sigma_low": 6,
-            "sigma_high": 1.5,
-            "gain": 3.0
-          },
-          "alignment_note": "Relative to the common eye alignment, a global similarity transform scales the human image by 0.7 about (250,210) and translates it vertically by 0 pixels. The human eye centers map to [[194, 210], [306, 210]]; cat eye centers remain at (170,210) and (330,210). Each original is sampled once using the composed transform. This places the human mouth nearer the cat muzzle at the cost of exact eye coincidence; facial proportions are unchanged.",
+          "alignment_note": "The official portraits were selected for similar near-frontal poses, tooth-showing smiles, lighting, and collared clothing. Two-point similarity transforms map both original eye pairs to (181,205) and (331,205) on a 512 x 512 canvas. Each original is sampled once using rotation, uniform scale and translation. No relative facial scaling, local warp, masking or facial retouching is used.",
+          "selection_note": "Biden\u2019s wrinkles, eyes and fine facial texture are prominent at 512 pixels; Obama\u2019s broader facial structure and smile become clearer at 64 pixels. Their mouth, jaw and collar positions align more naturally than the earlier portrait pair. Intermediate views retain both identities, and some broad forehead shading remains.",
           "low_matrix": [
             [
-              2.544140423335054,
-              0.05782137325761487,
-              -328.30046463603514
+              0.5136926054066733,
+              0.0017592212513927166,
+              -428.7232158564475
             ],
             [
-              -0.05782137325761487,
-              2.544140423335054,
-              -35.22044398554465
+              -0.0017592212513927166,
+              0.5136926054066733,
+              -84.17903008268337
             ]
           ],
           "high_matrix": [
             [
-              0.6105447130789398,
-              0.009321293329449462,
-              -312.63792601223423
+              0.45174165457184323,
+              -0.00544267053701016,
+              -282.0841799709724
             ],
             [
-              -0.009321293329449462,
-              0.6105447130789398,
-              -202.78415380133998
+              0.00544267053701016,
+              0.45174165457184323,
+              -209.0130624092888
             ]
           ],
-          "clip_fraction": 0.014881134033203125,
+          "clip_fraction": 0.001697540283203125,
           "range": [
-            -0.34374764412556025,
-            1.4085255184484415
+            -0.3315492223932939,
+            1.262313279591858
           ],
-          "low_half_amplitude_cycles_per_pixel": 0.01873906251292776,
+          "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
           "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
-          "final": "images/hybrid_astronaut_chelsea_final.jpg",
-          "alignment": "images/hybrid_astronaut_chelsea_alignment.jpg",
-          "components": "images/hybrid_astronaut_chelsea_components.jpg",
-          "near_far": "images/hybrid_astronaut_chelsea_distance.jpg",
+          "final": "images/hybrid_obama_biden_final.jpg",
+          "alignment": "images/hybrid_obama_biden_alignment.jpg",
+          "components": "images/hybrid_obama_biden_components.jpg",
+          "near_far": "images/hybrid_obama_biden_distance.jpg",
           "trials": [
             {
               "sigma_low": 10,
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.013580322265625,
-              "high_to_low_contrast_ratio_512": 0.19446347257739452,
-              "high_to_low_contrast_ratio_128": 0.14489369272240762
+              "clip_fraction": 6.866455078125e-05,
+              "high_to_low_contrast_ratio_512": 0.28331208713000955,
+              "high_to_low_contrast_ratio_128": 0.2347279474195082
             },
             {
-              "sigma_low": 10,
-              "sigma_high": 1.5,
-              "gain": 2.7,
+              "sigma_low": 12,
+              "sigma_high": 3,
+              "gain": 1,
               "selected": false,
-              "clip_fraction": 0.026885986328125,
-              "high_to_low_contrast_ratio_512": 0.3157534486047688,
-              "high_to_low_contrast_ratio_128": 0.09775610822484518
+              "clip_fraction": 0.0,
+              "high_to_low_contrast_ratio_512": 0.22022066142548763,
+              "high_to_low_contrast_ratio_128": 0.14707827233067722
             },
             {
-              "sigma_low": 10,
+              "sigma_low": 12,
               "sigma_high": 3,
               "gain": 0.75,
               "selected": false,
-              "clip_fraction": 0.0084381103515625,
-              "high_to_low_contrast_ratio_512": 0.11805967045217139,
-              "high_to_low_contrast_ratio_128": 0.06814123201313783
+              "clip_fraction": 0.0,
+              "high_to_low_contrast_ratio_512": 0.16516549606911574,
+              "high_to_low_contrast_ratio_128": 0.11030870446871338
             },
             {
-              "sigma_low": 18,
+              "sigma_low": 20,
               "sigma_high": 3,
-              "gain": 1.25,
+              "gain": 2,
               "selected": false,
-              "clip_fraction": 0.008541107177734375,
-              "high_to_low_contrast_ratio_512": 0.21454255910435782,
-              "high_to_low_contrast_ratio_128": 0.12383034758555828
+              "clip_fraction": 0.00096893310546875,
+              "high_to_low_contrast_ratio_512": 0.5158137683239863,
+              "high_to_low_contrast_ratio_128": 0.3445017913257326
             },
             {
-              "sigma_low": 10,
+              "sigma_low": 12,
               "sigma_high": 7,
-              "gain": 1.25,
+              "gain": 2,
               "selected": false,
-              "clip_fraction": 0.02034759521484375,
-              "high_to_low_contrast_ratio_512": 0.28281967027522176,
-              "high_to_low_contrast_ratio_128": 0.23216545396490143
+              "clip_fraction": 0.008167266845703125,
+              "high_to_low_contrast_ratio_512": 0.7191701639980069,
+              "high_to_low_contrast_ratio_128": 0.6394785738079478
             },
             {
-              "sigma_low": 10,
+              "sigma_low": 12,
               "sigma_high": 3,
-              "gain": 1.25,
+              "gain": 2,
               "selected": true,
-              "clip_fraction": 0.014881134033203125,
-              "high_to_low_contrast_ratio_512": 0.19676611742028566,
-              "high_to_low_contrast_ratio_128": 0.11356871999888486
+              "clip_fraction": 0.001697540283203125,
+              "high_to_low_contrast_ratio_512": 0.44044132285097526,
+              "high_to_low_contrast_ratio_128": 0.29415654466135444
             }
           ],
-          "refinement_trials": [
-            {
-              "label": "Common eye targets / reference filters",
-              "sigma_low": 6,
-              "sigma_high": 1.5,
-              "gain": 3.0,
-              "low_target_points": [
-                [
-                  170,
-                  210
-                ],
-                [
-                  330,
-                  210
-                ]
-              ],
-              "clip_fraction": 0.023860931396484375
-            },
-            {
-              "label": "Common eye targets / selected filters",
-              "sigma_low": 10,
-              "sigma_high": 3,
-              "gain": 1.25,
-              "low_target_points": [
-                [
-                  170,
-                  210
-                ],
-                [
-                  330,
-                  210
-                ]
-              ],
-              "clip_fraction": 0.0095977783203125
-            },
-            {
-              "label": "Refined geometry / reference filters",
-              "sigma_low": 6,
-              "sigma_high": 1.5,
-              "gain": 3.0,
-              "low_target_points": [
-                [
-                  194,
-                  210
-                ],
-                [
-                  306,
-                  210
-                ]
-              ],
-              "clip_fraction": 0.038593292236328125
-            },
-            {
-              "label": "Refined geometry / selected filters",
-              "sigma_low": 10,
-              "sigma_high": 3,
-              "gain": 1.25,
-              "low_target_points": [
-                [
-                  194,
-                  210
-                ],
-                [
-                  306,
-                  210
-                ]
-              ],
-              "clip_fraction": 0.014881134033203125
-            }
-          ],
+          "refinement_trials": [],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.19676611742028566,
-            "selected_128": 0.11356871999888486,
-            "baseline_512": 0.19446347257739452,
-            "baseline_128": 0.14489369272240762
+            "selected_512": 0.44044132285097526,
+            "selected_128": 0.29415654466135444,
+            "baseline_512": 0.28331208713000955,
+            "baseline_128": 0.2347279474195082
           },
-          "fourier_common_display_max": 13.208507136820684
+          "fourier_common_display_max": 13.34923492989479
         },
         {
-          "id": "obama_einstein",
-          "title": "Obama + Einstein",
-          "low_path": "data/custom/obama.jpg",
+          "id": "monroe_einstein",
+          "title": "Monroe + Einstein",
+          "low_label": "Monroe",
+          "high_label": "Einstein",
+          "low_path": "data/custom/monroe.jpg",
           "high_path": "data/custom/einstein.jpg",
           "low_points": [
             [
-              1185,
-              567
+              179,
+              230
             ],
             [
-              1477,
-              568
+              266,
+              232
             ]
           ],
           "high_points": [
@@ -1782,12 +1645,12 @@
           ],
           "target_points": [
             [
-              196.0,
-              205
+              191,
+              215
             ],
             [
-              316.0,
-              205
+              321,
+              215
             ]
           ],
           "shape": [
@@ -1795,8 +1658,8 @@
             512
           ],
           "sigma_low": 12,
-          "sigma_high": 3.5,
-          "gain": 1,
+          "sigma_high": 3,
+          "gain": 1.25,
           "low_color": false,
           "high_color": false,
           "trial_settings": [
@@ -1807,130 +1670,130 @@
             ],
             [
               12,
-              2.5,
-              2
+              3,
+              1
             ],
             [
               12,
-              3.5,
+              3,
               0.75
             ],
             [
               20,
-              3.5,
-              1
+              3,
+              1.25
             ],
             [
               12,
               7,
-              1
+              1.25
             ],
             [
               12,
-              3.5,
-              1
+              3,
+              1.25
             ]
           ],
-          "selection_note": "Einstein\u2019s hair, wrinkles and moustache are prominent at 512 pixels, while Obama\u2019s broader facial structure and smile become clearer at 64 pixels. The 128-pixel view remains mixed. Sigma low 12 softens the broad smile patch; increasing sigma high to 3.5 and reducing gain to 1 softens the engraved detail. Faint low-frequency cheek and neck shading remains in the near view.",
-          "alignment_note": "Two-point similarity transforms map the eye centers in both originals to (196,205) and (316,205) on a 512 by 512 canvas. Uniform scaling, rotation and translation preserve facial proportions. The common eye targets are sufficient for this face-to-face pair; no local feature editing or separate geometry refinement is used.",
+          "selection_note": "Einstein's wrinkles, moustache and hair are recognizable at 512 pixels; Monroe's mouth, eyes and hair shape emerge at 64 pixels. The softer illumination of the selected Monroe portrait reduces the dark lower-face shadow seen with a more contrasty portrait. Intermediate views remain mixed, and the result retains differences in face shape and shading.",
+          "alignment_note": "Two-point similarity transforms map both eye pairs to (191,215) and (321,215) on a 512 by 512 canvas. Both use the same targets, with no relative face scaling or local deformation. This is an implementation of the classic Monroe/Einstein pairing, generated from the separately credited original portraits rather than a downloaded hybrid.",
           "low_matrix": [
             [
-              0.41095408432533864,
-              0.0014073770011141734,
-              -291.77857268515805
+              1.4934636207579557,
+              0.034332497028918524,
+              -84.22646243232532
             ],
             [
-              -0.0014073770011141734,
-              0.41095408432533864,
-              -26.343224066146718
+              -0.034332497028918524,
+              1.4934636207579557,
+              -122.35111580615336
             ]
           ],
           "high_matrix": [
             [
-              0.19017384883539867,
-              0.00030138486344754147,
-              -217.05850382507623
+              0.2060216695716819,
+              0.0003265002687348366,
+              -256.48004581049923
             ],
             [
-              -0.00030138486344754147,
-              0.19017384883539867,
-              -154.91591362309816
+              -0.0003265002687348366,
+              0.2060216695716819,
+              -174.90890642502302
             ]
           ],
-          "clip_fraction": 0.003620147705078125,
+          "clip_fraction": 0.00251007080078125,
           "range": [
-            -0.1178063789136313,
-            1.2947164262536204
+            -0.17797348069314178,
+            1.758933464059976
           ],
           "low_half_amplitude_cycles_per_pixel": 0.015615885427439798,
-          "high_half_amplitude_cycles_per_pixel": 0.053540178608365026,
-          "final": "images/hybrid_obama_einstein_final.jpg",
-          "alignment": "images/hybrid_obama_einstein_alignment.jpg",
-          "components": "images/hybrid_obama_einstein_components.jpg",
-          "near_far": "images/hybrid_obama_einstein_distance.jpg",
+          "high_half_amplitude_cycles_per_pixel": 0.06246354170975919,
+          "final": "images/hybrid_monroe_einstein_final.jpg",
+          "alignment": "images/hybrid_monroe_einstein_alignment.jpg",
+          "components": "images/hybrid_monroe_einstein_components.jpg",
+          "near_far": "images/hybrid_monroe_einstein_distance.jpg",
           "trials": [
             {
               "sigma_low": 10,
               "sigma_high": 5,
               "gain": 1,
               "selected": false,
-              "clip_fraction": 0.0053558349609375,
-              "high_to_low_contrast_ratio_512": 0.35760044637220845,
-              "high_to_low_contrast_ratio_128": 0.2620923633342917
+              "clip_fraction": 0.001995086669921875,
+              "high_to_low_contrast_ratio_512": 0.5020092898948819,
+              "high_to_low_contrast_ratio_128": 0.3871738631333067
             },
             {
               "sigma_low": 12,
-              "sigma_high": 2.5,
-              "gain": 2,
+              "sigma_high": 3,
+              "gain": 1,
               "selected": false,
-              "clip_fraction": 0.01381683349609375,
-              "high_to_low_contrast_ratio_512": 0.5698777007017847,
-              "high_to_low_contrast_ratio_128": 0.298081386154415
+              "clip_fraction": 0.00127410888671875,
+              "high_to_low_contrast_ratio_512": 0.4215867099373623,
+              "high_to_low_contrast_ratio_128": 0.2664909635641919
             },
             {
               "sigma_low": 12,
-              "sigma_high": 3.5,
+              "sigma_high": 3,
               "gain": 0.75,
               "selected": false,
-              "clip_fraction": 0.00170135498046875,
-              "high_to_low_contrast_ratio_512": 0.24420696111572088,
-              "high_to_low_contrast_ratio_128": 0.15629570480404562
+              "clip_fraction": 0.00035858154296875,
+              "high_to_low_contrast_ratio_512": 0.31619003245302174,
+              "high_to_low_contrast_ratio_128": 0.19986822266630971
             },
             {
               "sigma_low": 20,
-              "sigma_high": 3.5,
-              "gain": 1,
+              "sigma_high": 3,
+              "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.00185394287109375,
-              "high_to_low_contrast_ratio_512": 0.3645574720218422,
-              "high_to_low_contrast_ratio_128": 0.23332499191563333
+              "clip_fraction": 0.002429962158203125,
+              "high_to_low_contrast_ratio_512": 0.598420619596739,
+              "high_to_low_contrast_ratio_128": 0.37827653321823124
             },
             {
               "sigma_low": 12,
               "sigma_high": 7,
-              "gain": 1,
+              "gain": 1.25,
               "selected": false,
-              "clip_fraction": 0.0054931640625,
-              "high_to_low_contrast_ratio_512": 0.4124168474395071,
-              "high_to_low_contrast_ratio_128": 0.3276564958554622
+              "clip_fraction": 0.00626373291015625,
+              "high_to_low_contrast_ratio_512": 0.7374008370454168,
+              "high_to_low_contrast_ratio_128": 0.6109944742854125
             },
             {
               "sigma_low": 12,
-              "sigma_high": 3.5,
-              "gain": 1,
+              "sigma_high": 3,
+              "gain": 1.25,
               "selected": true,
-              "clip_fraction": 0.003620147705078125,
-              "high_to_low_contrast_ratio_512": 0.3256092814876278,
-              "high_to_low_contrast_ratio_128": 0.20839427300381044
+              "clip_fraction": 0.00251007080078125,
+              "high_to_low_contrast_ratio_512": 0.5269833874217029,
+              "high_to_low_contrast_ratio_128": 0.3331137044924443
             }
           ],
           "refinement_trials": [],
           "band_contrast_diagnostic": {
             "definition": "std(high luminance) / std(low luminance); signed float Lanczos reduction, no clipping. Not a perceptual score.",
-            "selected_512": 0.3256092814876278,
-            "selected_128": 0.20839427300381044,
-            "baseline_512": 0.35760044637220845,
-            "baseline_128": 0.2620923633342917
+            "selected_512": 0.5269833874217029,
+            "selected_128": 0.3331137044924443,
+            "baseline_512": 0.5020092898948819,
+            "baseline_128": 0.3871738631333067
           }
         },
         {
@@ -2061,29 +1924,29 @@
       "blends": [
         {
           "id": "custom_landscape",
-          "title": "Mountain-sky blending",
-          "a_path": "data/custom/rainier.jpg",
-          "b_path": "data/custom/alpenglow.jpg",
-          "a_label": "Mount Rainier and Nisqually Glacier",
-          "b_label": "Sunset clouds above Denali",
+          "title": "Sandstone arch and alpine lake",
+          "a_path": "data/custom/lake_mcdonald_alpenglow.jpg",
+          "b_path": "data/custom/north_window_arch.jpg",
+          "a_label": "Alpenglow on Lake McDonald",
+          "b_label": "North Window sandstone arch",
           "a_points": [
             [
-              320,
+              864,
               0
             ],
             [
-              2240,
+              4320,
               0
             ]
           ],
           "b_points": [
             [
-              2500,
-              400
+              613,
+              0
             ],
             [
-              5000,
-              400
+              3105,
+              0
             ]
           ],
           "target_points": [
@@ -2109,411 +1972,632 @@
             "vertices": [
               [
                 0,
-                65
+                207
               ],
               [
-                12,
-                65
+                3,
+                207
+              ],
+              [
+                4,
+                206
+              ],
+              [
+                5,
+                195
+              ],
+              [
+                7,
+                192
+              ],
+              [
+                13,
+                188
+              ],
+              [
+                19,
+                181
               ],
               [
                 22,
-                74
+                181
               ],
               [
-                34,
-                79
-              ],
-              [
-                44,
-                76
-              ],
-              [
-                51,
-                86
-              ],
-              [
-                63,
-                89
-              ],
-              [
-                71,
-                101
-              ],
-              [
-                81,
-                102
-              ],
-              [
-                89,
-                112
-              ],
-              [
-                99,
-                113
-              ],
-              [
-                110,
-                122
-              ],
-              [
-                120,
-                126
-              ],
-              [
-                131,
-                132
-              ],
-              [
-                143,
-                142
-              ],
-              [
-                153,
-                153
-              ],
-              [
-                162,
-                163
-              ],
-              [
-                175,
-                172
-              ],
-              [
-                189,
+                27,
                 177
               ],
               [
-                205,
-                171
+                30,
+                176
               ],
               [
-                221,
-                164
-              ],
-              [
-                265,
-                146
-              ],
-              [
-                290,
-                144
-              ],
-              [
-                315,
-                147
-              ],
-              [
-                337,
-                152
-              ],
-              [
-                354,
-                151
-              ],
-              [
-                370,
-                155
-              ],
-              [
-                390,
-                166
-              ],
-              [
-                415,
-                168
-              ],
-              [
-                435,
+                34,
                 172
               ],
               [
-                459,
+                36,
+                172
+              ],
+              [
+                39,
+                169
+              ],
+              [
+                59,
+                157
+              ],
+              [
+                60,
+                155
+              ],
+              [
+                65,
+                155
+              ],
+              [
+                68,
+                152
+              ],
+              [
+                74,
+                150
+              ],
+              [
+                78,
+                146
+              ],
+              [
+                82,
+                144
+              ],
+              [
+                92,
+                134
+              ],
+              [
+                97,
+                132
+              ],
+              [
+                99,
+                130
+              ],
+              [
+                104,
+                129
+              ],
+              [
+                112,
+                124
+              ],
+              [
+                124,
+                120
+              ],
+              [
+                129,
+                120
+              ],
+              [
+                130,
+                119
+              ],
+              [
+                142,
+                117
+              ],
+              [
+                151,
+                113
+              ],
+              [
+                152,
+                114
+              ],
+              [
+                156,
+                114
+              ],
+              [
+                161,
+                112
+              ],
+              [
+                176,
+                112
+              ],
+              [
+                185,
+                108
+              ],
+              [
+                192,
+                108
+              ],
+              [
+                204,
+                104
+              ],
+              [
+                208,
+                104
+              ],
+              [
+                209,
+                103
+              ],
+              [
+                211,
+                104
+              ],
+              [
+                216,
+                102
+              ],
+              [
+                217,
+                103
+              ],
+              [
+                228,
+                103
+              ],
+              [
+                229,
+                104
+              ],
+              [
+                236,
+                104
+              ],
+              [
+                242,
+                106
+              ],
+              [
+                248,
+                106
+              ],
+              [
+                265,
+                111
+              ],
+              [
+                274,
+                111
+              ],
+              [
+                275,
+                112
+              ],
+              [
+                280,
+                112
+              ],
+              [
+                281,
+                113
+              ],
+              [
+                286,
+                113
+              ],
+              [
+                287,
+                114
+              ],
+              [
+                295,
+                115
+              ],
+              [
+                299,
+                117
+              ],
+              [
+                308,
+                119
+              ],
+              [
+                311,
+                121
+              ],
+              [
+                315,
+                121
+              ],
+              [
+                318,
+                123
+              ],
+              [
+                321,
+                123
+              ],
+              [
+                327,
+                126
+              ],
+              [
+                341,
+                129
+              ],
+              [
+                346,
+                132
+              ],
+              [
+                353,
+                133
+              ],
+              [
+                363,
+                139
+              ],
+              [
+                366,
+                139
+              ],
+              [
+                374,
+                143
+              ],
+              [
+                379,
+                147
+              ],
+              [
+                386,
+                155
+              ],
+              [
+                389,
+                155
+              ],
+              [
+                392,
+                160
+              ],
+              [
+                400,
+                168
+              ],
+              [
+                411,
                 174
               ],
               [
-                472,
-                187
+                412,
+                173
               ],
               [
-                480,
-                170
+                413,
+                174
               ],
               [
-                490,
-                161
+                416,
+                174
+              ],
+              [
+                417,
+                173
+              ],
+              [
+                418,
+                174
+              ],
+              [
+                421,
+                174
+              ],
+              [
+                422,
+                176
+              ],
+              [
+                424,
+                177
+              ],
+              [
+                430,
+                184
+              ],
+              [
+                436,
+                188
+              ],
+              [
+                438,
+                191
+              ],
+              [
+                451,
+                197
+              ],
+              [
+                460,
+                197
+              ],
+              [
+                467,
+                202
+              ],
+              [
+                477,
+                213
+              ],
+              [
+                482,
+                215
+              ],
+              [
+                488,
+                221
+              ],
+              [
+                492,
+                228
+              ],
+              [
+                494,
+                244
+              ],
+              [
+                498,
+                248
               ],
               [
                 500,
-                180
+                254
+              ],
+              [
+                504,
+                260
+              ],
+              [
+                509,
+                263
               ],
               [
                 511,
-                199
+                266
               ],
               [
                 511,
-                511
+                398
+              ],
+              [
+                488,
+                400
+              ],
+              [
+                470,
+                406
+              ],
+              [
+                451,
+                420
+              ],
+              [
+                430,
+                427
+              ],
+              [
+                405,
+                432
+              ],
+              [
+                380,
+                426
+              ],
+              [
+                355,
+                422
+              ],
+              [
+                331,
+                419
+              ],
+              [
+                306,
+                416
+              ],
+              [
+                280,
+                409
+              ],
+              [
+                256,
+                404
+              ],
+              [
+                232,
+                399
+              ],
+              [
+                210,
+                392
+              ],
+              [
+                187,
+                383
+              ],
+              [
+                166,
+                376
+              ],
+              [
+                143,
+                367
+              ],
+              [
+                121,
+                359
+              ],
+              [
+                99,
+                350
+              ],
+              [
+                78,
+                342
+              ],
+              [
+                57,
+                327
+              ],
+              [
+                35,
+                316
+              ],
+              [
+                16,
+                308
               ],
               [
                 0,
-                511
+                300
               ]
             ]
           },
-          "bands": 5,
+          "bands": 4,
           "base_sigma": 2,
           "trial_bands": [
+            3,
             4,
-            5,
-            6
+            5
           ],
           "detail_crop": [
-            150,
-            110,
-            510,
-            275
+            0,
+            270,
+            300,
+            440
           ],
           "favorite": true,
-          "alignment_note": "Each photograph is independently cropped and uniformly scaled using two saved framing points. These points set the framing; they are not corresponding scene features. The selected Denali crop places warmer clouds above the summit. After framing, the entire Denali RGB array is multiplied by (1.12, 1.10, 0.96), with no local correction or intermediate clipping. The same corrected inputs are used for all three blending methods.",
-          "visual_observation": "A warmer Denali crop and modest global RGB gains reduce the mauve-blue mismatch against the pale golden cloud in the Rainier photograph. A 2-pixel initial Gaussian softens the polygon corners. Multiresolution blending retains more summit and glacier detail than broad feathering. This improves visual consistency without establishing physically matched illumination.",
-          "crop_observation": "The hard cut remains visible even with the corrected sky. Broad feathering reduces the discontinuity but fades summit contrast. Multiresolution blending preserves more rock and snow detail while spreading the broad color transition. Some original cloud cover remains around the summit.",
-          "selection_note": "Five bands give a coarsest image sigma of 32 pixels. Four leave a narrower color transition, while six spread the sky color farther into the snow. Mask width and band count are unchanged during the framing and RGB-gain comparison.",
-          "derivative_notice": "Mount Rainier: U.S. National Park Service, public domain. Denali sunset: NPS / Emily Mesner, public domain. The composite joins photographs of different places; it is not a record of a real scene.",
-          "mask_sigma": 2,
+          "alignment_note": "The originals are independently cropped and uniformly scaled using saved framing points. The lake crop is x=864:4320, y=0:3456; the arch crop is x=613:3105, y=0:2492. Both map to 512 by 512 without stretching. These points specify framing rather than common scene features. No photometric adjustment or background precomposition is used.",
+          "visual_observation": "The warm snowy peaks and blue lake remain distinct from the orange sandstone foreground. A polygon traces the arch opening and foreground ledge; white selects the lake. Four detail bands soften the lower boundary while retaining more rock and mountain texture than broad feathering. Some lightening remains along the lower-left seam.",
+          "crop_observation": "The hard cut produces a pasted edge along the foreground ledge. Broad feathering makes the rock partly transparent and introduces ghosted background detail. Multiresolution blending retains more rock texture while reducing the abrupt transition, although a narrow region of lower-left seam lightening remains.",
+          "selection_note": "Four bands give a coarsest image sigma of 16 pixels. Three leave a tighter lower boundary; five spread more low-frequency color into the opening and foreground. Four give the best visual balance for these sources. The mask and all other settings remain fixed.",
+          "derivative_notice": "North Window arch: Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0. Lake McDonald: David Restivo/NPS (GlacierNPS), CC BY 2.0. The adapted composite and arch-derived figures are distributed under CC BY-SA 3.0. It joins photographs of different places and is not a record of a real scene.",
+          "mask_sigma": 1,
           "trial_mask_sigmas": [
             0,
+            0.5,
+            1,
             2,
             4,
-            8,
-            12,
-            16
+            8
           ],
           "mask_trial_crop": [
-            150,
-            110,
-            510,
-            275
+            0,
+            280,
+            300,
+            440
           ],
-          "mask_trial_region": "summit and mountain-sky boundary",
-          "mask_selection_note": "Sigma 2 reduces hard polygon corners without mixing as wide a region of snow and clouds. Larger widths increasingly soften the summit outline. The finest image bands and original photographs remain fixed.",
-          "registration_caption": "Cyan circles mark independent framing controls that set cropping and uniform scale; they are not correspondences between the two places. ",
-          "photometric": {
-            "b_gain_rgb": [
-              1.12,
-              1.1,
-              0.96
-            ]
-          },
-          "photometric_note": "A fixed diagonal RGB gain, B prime = B times (1.12,1.10,0.96), is applied uniformly to the full framed Denali array in stored RGB space. This is an empirical color adjustment, not a scene-linear exposure estimate or relighting model. Signed float64 values are retained through blending and clipped only for display. Hard-cut, feathered, and multiresolution results use exactly the same corrected inputs.",
-          "lighting_refinement_baseline": {
-            "b_points": [
-              [
-                700,
-                0
-              ],
-              [
-                3550,
-                0
-              ]
-            ]
-          },
+          "mask_trial_region": "foreground ledge and lake boundary",
+          "mask_selection_note": "Sigma 1 softens pixel-level corners in the traced contour while preserving the rock edge. Larger widths mix rock and lake texture over a wider region. The photographs and image bands stay fixed.",
+          "registration_caption": "Cyan circles mark independent framing controls used for cropping and uniform scaling; they are not correspondences between the two places. The lake is A, and the sandstone arch is B. ",
           "a_matrix": [
             [
-              0.26666666666666666,
+              0.14814814814814814,
               -0.0,
-              -85.33333333333333
+              -128.0
             ],
             [
               0.0,
-              0.26666666666666666,
+              0.14814814814814814,
               0.0
             ]
           ],
           "b_matrix": [
             [
-              0.2048,
+              0.20545746388443017,
               -0.0,
-              -512.0
+              -125.9454253611557
             ],
             [
               0.0,
-              0.2048,
-              -81.92
+              0.20545746388443017,
+              0.0
             ]
           ],
-          "coarse_sigma": 32,
-          "feather_sigma": 32.0624390837628,
+          "coarse_sigma": 16,
+          "feather_sigma": 16.0312195418814,
           "mask_equivalent_sigmas": [
-            2.0,
-            2.8284271247461903,
-            4.47213595499958,
-            8.246211251235321,
-            16.1245154965971,
-            32.0624390837628
+            1.0,
+            2.23606797749979,
+            4.123105625617661,
+            8.06225774829855,
+            16.0312195418814
           ],
           "source_precomposition": false,
-          "clip_fraction": 0.00197601318359375,
+          "clip_fraction": 0.0013415018717447917,
           "range": [
-            -0.00015248506428177516,
-            1.02041466534598
+            -0.2396433526864842,
+            1.0377849816262776
           ],
           "reconstruction_error": 2.220446049250313e-16,
-          "boundary_jump_hard": 0.23658243437526527,
-          "boundary_jump_feather": 0.0266426185802462,
-          "boundary_jump_multiscale": 0.030626520058734945,
+          "boundary_jump_hard": 0.27515806536699544,
+          "boundary_jump_feather": 0.15718347008474876,
+          "boundary_jump_multiscale": 0.16690150114378513,
           "final": "images/blend_custom_landscape_final.jpg",
-          "mask_area_pixels": 188220,
+          "mask_area_pixels": 123434,
           "trial_results": [
+            {
+              "bands": 3,
+              "coarse_sigma": 8,
+              "boundary_jump": 0.16667142077589825,
+              "clip_fraction": 0.008795420328776041
+            },
             {
               "bands": 4,
               "coarse_sigma": 16,
-              "boundary_jump": 0.031016606045642332,
-              "clip_fraction": 8.900960286458334e-06
+              "boundary_jump": 0.16690150114378513,
+              "clip_fraction": 0.0013415018717447917
             },
             {
               "bands": 5,
               "coarse_sigma": 32,
-              "boundary_jump": 0.030626520058734945,
-              "clip_fraction": 0.00197601318359375
-            },
-            {
-              "bands": 6,
-              "coarse_sigma": 64,
-              "boundary_jump": 0.030552479208642347,
-              "clip_fraction": 0.000972747802734375
+              "boundary_jump": 0.16714444564324712,
+              "clip_fraction": 0.004123687744140625
             }
           ],
           "mask_trials": [
             {
               "mask_sigma": 0,
-              "boundary_jump": 0.05194975697944312,
-              "clip_fraction": 0.00200653076171875
+              "boundary_jump": 0.19490753141401046,
+              "clip_fraction": 0.0014597574869791667
+            },
+            {
+              "mask_sigma": 0.5,
+              "boundary_jump": 0.18120979454769506,
+              "clip_fraction": 0.001415252685546875
+            },
+            {
+              "mask_sigma": 1,
+              "boundary_jump": 0.16690150114378513,
+              "clip_fraction": 0.0013415018717447917
             },
             {
               "mask_sigma": 2,
-              "boundary_jump": 0.030626520058734945,
-              "clip_fraction": 0.00197601318359375
+              "boundary_jump": 0.1625662477177201,
+              "clip_fraction": 0.0012639363606770833
             },
             {
               "mask_sigma": 4,
-              "boundary_jump": 0.028867968851460066,
-              "clip_fraction": 0.0019391377766927083
+              "boundary_jump": 0.1602929155996482,
+              "clip_fraction": 0.0011494954427083333
             },
             {
               "mask_sigma": 8,
-              "boundary_jump": 0.027824456660653644,
-              "clip_fraction": 0.001850128173828125
-            },
-            {
-              "mask_sigma": 12,
-              "boundary_jump": 0.02737431350262169,
-              "clip_fraction": 0.001766204833984375
-            },
-            {
-              "mask_sigma": 16,
-              "boundary_jump": 0.02708171070894501,
-              "clip_fraction": 0.001430511474609375
-            }
-          ],
-          "photometric_diagnostics": {
-            "b_gain_rgb": [
-              1.12,
-              1.1,
-              0.96
-            ],
-            "domain": "stored RGB; spatially uniform multiplication after framing",
-            "intermediate_clipping": false,
-            "b_range_before_gain": [
-              0.06089154411764706,
-              0.9535462622549019
-            ],
-            "b_range_after_gain": [
-              0.06698069852941177,
-              1.0679718137254903
-            ],
-            "b_out_of_display_count": 2,
-            "b_out_of_display_fraction": 2.5431315104166665e-06
-          },
-          "lighting_refinement_figure": "images/blend_custom_landscape_lighting_refinement.jpg",
-          "lighting_refinement_trials": [
-            {
-              "label": "Original crop / no color adjustment",
-              "b_points": [
-                [
-                  700,
-                  0
-                ],
-                [
-                  3550,
-                  0
-                ]
-              ],
-              "b_gain_rgb": [
-                1,
-                1,
-                1
-              ],
-              "boundary_jump": 0.030571271624323583,
-              "clip_fraction": 0.0019849141438802085,
-              "range": [
-                -6.605273107761323e-05,
-                1.0174669450541953
-              ]
-            },
-            {
-              "label": "Selected crop / no color adjustment",
-              "b_points": [
-                [
-                  2500,
-                  400
-                ],
-                [
-                  5000,
-                  400
-                ]
-              ],
-              "b_gain_rgb": [
-                1,
-                1,
-                1
-              ],
-              "boundary_jump": 0.03054580178630116,
-              "clip_fraction": 0.0019709269205729165,
-              "range": [
-                -0.00010141016253123968,
-                0.9999999465029058
-              ]
-            },
-            {
-              "label": "Selected crop / uniform RGB gains",
-              "b_points": [
-                [
-                  2500,
-                  400
-                ],
-                [
-                  5000,
-                  400
-                ]
-              ],
-              "b_gain_rgb": [
-                1.12,
-                1.1,
-                0.96
-              ],
-              "boundary_jump": 0.030626520058734945,
-              "clip_fraction": 0.00197601318359375,
-              "range": [
-                -0.00015248506428177516,
-                1.02041466534598
-              ]
+              "boundary_jump": 0.15861831319432407,
+              "clip_fraction": 0.0010210673014322917
             }
           ],
           "process_shared_row_scales": [
-            0.2578948202129551,
-            0.09886177244773951,
-            0.12769819001533994
+            0.23966381597488465,
+            0.12109682197448131,
+            0.14357089283954236
           ]
         },
         {
@@ -2775,13 +2859,13 @@
         "gain": 1.25,
         "low_color": false,
         "high_color": false,
-        "clip_fraction": 0.022876739501953125,
+        "clip_fraction": 0.012104034423828125,
         "range": [
-          -0.25540072486012205,
-          1.2045863931645342
+          -0.17654758901793866,
+          1.3631128870279094
         ],
-        "high_to_low_contrast_ratio_512": 0.3227426183256169,
-        "high_to_low_contrast_ratio_128": 0.19940318412502764,
+        "high_to_low_contrast_ratio_512": 0.3033108656974054,
+        "high_to_low_contrast_ratio_128": 0.1817746336682892,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
@@ -2798,13 +2882,13 @@
           "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
           "low_color": false,
           "high_color": false,
-          "clip_fraction": 0.0189056396484375,
+          "clip_fraction": 0.0100250244140625,
           "range": [
-            -0.2055770554373391,
-            1.1499999830526826
+            -0.14437789400548603,
+            1.2386252349126758
           ],
-          "high_to_low_contrast_ratio_512": 0.3186054243640332,
-          "high_to_low_contrast_ratio_128": 0.2399244525965295,
+          "high_to_low_contrast_ratio_512": 0.2967723554060942,
+          "high_to_low_contrast_ratio_128": 0.21899535966267752,
           "saved_checks": {
             "ratio_512": true,
             "ratio_128": true
@@ -2812,22 +2896,68 @@
         }
       },
       {
-        "id": "astronaut_chelsea",
-        "title": "Astronaut + portrait cat",
+        "id": "obama_biden",
+        "title": "Obama + Biden",
         "width": 512,
         "height": 512,
-        "sigma_low": 10,
+        "sigma_low": 12,
+        "sigma_high": 3,
+        "gain": 2,
+        "low_color": false,
+        "high_color": false,
+        "clip_fraction": 0.001697540283203125,
+        "range": [
+          -0.3315492223932939,
+          1.262313279591858
+        ],
+        "high_to_low_contrast_ratio_512": 0.44044132285097526,
+        "high_to_low_contrast_ratio_128": 0.29415654466135444,
+        "saved_checks": {
+          "clip_fraction": true,
+          "range": true,
+          "ratio_512": true,
+          "ratio_128": true,
+          "low_matrix": true,
+          "high_matrix": true
+        },
+        "baseline": {
+          "label": "Wide-band baseline on selected geometry",
+          "sigma_low": 10,
+          "sigma_high": 5,
+          "gain": 1,
+          "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
+          "low_color": false,
+          "high_color": false,
+          "clip_fraction": 6.866455078125e-05,
+          "range": [
+            -0.027715734951352988,
+            1.019076062775345
+          ],
+          "high_to_low_contrast_ratio_512": 0.28331208713000955,
+          "high_to_low_contrast_ratio_128": 0.2347279474195082,
+          "saved_checks": {
+            "ratio_512": true,
+            "ratio_128": true
+          }
+        }
+      },
+      {
+        "id": "monroe_einstein",
+        "title": "Monroe + Einstein",
+        "width": 512,
+        "height": 512,
+        "sigma_low": 12,
         "sigma_high": 3,
         "gain": 1.25,
         "low_color": false,
         "high_color": false,
-        "clip_fraction": 0.014881134033203125,
+        "clip_fraction": 0.00251007080078125,
         "range": [
-          -0.34374764412556025,
-          1.4085255184484415
+          -0.17797348069314178,
+          1.758933464059976
         ],
-        "high_to_low_contrast_ratio_512": 0.19676611742028566,
-        "high_to_low_contrast_ratio_128": 0.11356871999888486,
+        "high_to_low_contrast_ratio_512": 0.5269833874217029,
+        "high_to_low_contrast_ratio_128": 0.3331137044924443,
         "saved_checks": {
           "clip_fraction": true,
           "range": true,
@@ -2844,59 +2974,13 @@
           "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
           "low_color": false,
           "high_color": false,
-          "clip_fraction": 0.013580322265625,
+          "clip_fraction": 0.001995086669921875,
           "range": [
-            -0.27161402790941835,
-            1.3137339027716899
+            -0.013111961671368744,
+            1.572116846648757
           ],
-          "high_to_low_contrast_ratio_512": 0.19446347257739452,
-          "high_to_low_contrast_ratio_128": 0.14489369272240762,
-          "saved_checks": {
-            "ratio_512": true,
-            "ratio_128": true
-          }
-        }
-      },
-      {
-        "id": "obama_einstein",
-        "title": "Obama + Einstein",
-        "width": 512,
-        "height": 512,
-        "sigma_low": 12,
-        "sigma_high": 3.5,
-        "gain": 1,
-        "low_color": false,
-        "high_color": false,
-        "clip_fraction": 0.003620147705078125,
-        "range": [
-          -0.1178063789136313,
-          1.2947164262536204
-        ],
-        "high_to_low_contrast_ratio_512": 0.3256092814876278,
-        "high_to_low_contrast_ratio_128": 0.20839427300381044,
-        "saved_checks": {
-          "clip_fraction": true,
-          "range": true,
-          "ratio_512": true,
-          "ratio_128": true,
-          "low_matrix": true,
-          "high_matrix": true
-        },
-        "baseline": {
-          "label": "Wide-band baseline on selected geometry",
-          "sigma_low": 10,
-          "sigma_high": 5,
-          "gain": 1,
-          "geometry": "Same selected geometry as this pair; only filter widths and gain vary.",
-          "low_color": false,
-          "high_color": false,
-          "clip_fraction": 0.0053558349609375,
-          "range": [
-            -0.13454286825777284,
-            1.3096999143269612
-          ],
-          "high_to_low_contrast_ratio_512": 0.35760044637220845,
-          "high_to_low_contrast_ratio_128": 0.2620923633342917,
+          "high_to_low_contrast_ratio_512": 0.5020092898948819,
+          "high_to_low_contrast_ratio_128": 0.3871738631333067,
           "saved_checks": {
             "ratio_512": true,
             "ratio_128": true
@@ -2905,64 +2989,70 @@
       }
     ],
     "favorite_refinement": {
-      "id": "astronaut_chelsea",
-      "figure": "images/hybrid_astronaut_chelsea_refinement.jpg",
+      "id": "derek_nutmeg",
+      "title": "Derek + Nutmeg",
+      "figure": "images/hybrid_derek_nutmeg_refinement.jpg",
       "design": "2 geometries x 2 filter sets; same original photographs, cat alignment, color flags, canvas, and interpolation. Every original is geometrically resampled once per alignment.",
+      "selected_geometry": "common",
+      "alternative_geometry": "reduced",
+      "geometry_comparison_note": "The reduced-human alternative is constructed on the selected cat framing; it does not reproduce a historical crop.",
       "width": 512,
       "height": 512,
       "high_matrix": [
         [
-          0.6105447130789398,
-          0.009321293329449462,
-          -312.63792601223423
+          0.7339386671235223,
+          0.36457084118554056,
+          -360.08874421792007
         ],
         [
-          -0.009321293329449462,
-          0.6105447130789398,
-          -202.78415380133998
+          -0.36457084118554056,
+          0.7339386671235223,
+          240.90029124550287
         ]
       ],
       "low_color": false,
       "high_color": false,
       "trials": [
         {
-          "label": "Common eye targets / reference filters",
-          "geometry": "common",
+          "label": "Reduced human / reference filters",
+          "geometry": "reduced",
           "filter_set": "reference",
           "sigma_low": 6,
           "sigma_high": 1.5,
-          "gain": 3.0,
+          "gain": 2.5,
           "low_target_points": [
             [
-              170,
-              210
+              207,
+              223
             ],
             [
-              330,
-              210
+              305,
+              223
             ]
           ],
           "low_matrix": [
             [
-              3.6344863190500774,
-              0.08260196179659267,
-              -576.1435209086216
+              0.6989225243714726,
+              -0.06536685479733197,
+              19.809440738840408
             ],
             [
-              -0.08260196179659267,
-              3.6344863190500774,
-              -140.3149199793495
+              0.06536685479733197,
+              0.6989225243714726,
+              -37.03940482298617
             ]
           ],
-          "clip_fraction": 0.023860931396484375,
+          "clip_fraction": 0.036525726318359375,
           "range": [
-            -0.7749343168700958,
-            2.070002046107769
+            -0.47530021331934835,
+            1.6128442266822074
           ],
-          "high_to_low_contrast_ratio_512": 0.37715544699692566,
-          "high_to_low_contrast_ratio_128": 0.11676203364064758,
+          "high_to_low_contrast_ratio_512": 0.46159330347365246,
+          "high_to_low_contrast_ratio_128": 0.1626580011106588,
           "saved_checks": {
             "label": true,
+            "geometry": true,
+            "filter_set": true,
             "sigma_low": true,
             "sigma_high": true,
             "gain": true,
@@ -2972,43 +3062,45 @@
           "matches_saved_refinement_trial": true
         },
         {
-          "label": "Common eye targets / selected filters",
-          "geometry": "common",
+          "label": "Reduced human / selected filters",
+          "geometry": "reduced",
           "filter_set": "selected",
-          "sigma_low": 10,
+          "sigma_low": 8,
           "sigma_high": 3,
           "gain": 1.25,
           "low_target_points": [
             [
-              170,
-              210
+              207,
+              223
             ],
             [
-              330,
-              210
+              305,
+              223
             ]
           ],
           "low_matrix": [
             [
-              3.6344863190500774,
-              0.08260196179659267,
-              -576.1435209086216
+              0.6989225243714726,
+              -0.06536685479733197,
+              19.809440738840408
             ],
             [
-              -0.08260196179659267,
-              3.6344863190500774,
-              -140.3149199793495
+              0.06536685479733197,
+              0.6989225243714726,
+              -37.03940482298617
             ]
           ],
-          "clip_fraction": 0.0095977783203125,
+          "clip_fraction": 0.0208587646484375,
           "range": [
-            -0.2915977705835259,
-            1.460350552161447
+            -0.22451787697341313,
+            1.2426219030965848
           ],
-          "high_to_low_contrast_ratio_512": 0.22082334116417662,
-          "high_to_low_contrast_ratio_128": 0.12745406756415617,
+          "high_to_low_contrast_ratio_512": 0.3298908374669578,
+          "high_to_low_contrast_ratio_128": 0.19770305066215058,
           "saved_checks": {
             "label": true,
+            "geometry": true,
+            "filter_set": true,
             "sigma_low": true,
             "sigma_high": true,
             "gain": true,
@@ -3018,43 +3110,45 @@
           "matches_saved_refinement_trial": true
         },
         {
-          "label": "Refined geometry / reference filters",
-          "geometry": "refined",
+          "label": "Common eyes (selected) / reference filters",
+          "geometry": "common",
           "filter_set": "reference",
           "sigma_low": 6,
           "sigma_high": 1.5,
-          "gain": 3.0,
+          "gain": 2.5,
           "low_target_points": [
             [
-              194,
-              210
+              186,
+              235
             ],
             [
-              306,
-              210
+              326,
+              235
             ]
           ],
           "low_matrix": [
             [
-              2.544140423335054,
-              0.05782137325761487,
-              -328.30046463603514
+              0.9984607491021037,
+              -0.09338122113904568,
+              -81.4150846587994
             ],
             [
-              -0.05782137325761487,
-              2.544140423335054,
-              -35.22044398554465
+              0.09338122113904568,
+              0.9984607491021037,
+              -136.48486403283738
             ]
           ],
-          "clip_fraction": 0.038593292236328125,
+          "clip_fraction": 0.020660400390625,
           "range": [
-            -0.6868295606192278,
-            2.0400236813960584
+            -0.2750627380840017,
+            1.7611546150134685
           ],
-          "high_to_low_contrast_ratio_512": 0.3359726845549424,
-          "high_to_low_contrast_ratio_128": 0.10401224776567929,
+          "high_to_low_contrast_ratio_512": 0.42592655146057046,
+          "high_to_low_contrast_ratio_128": 0.15009081898803314,
           "saved_checks": {
             "label": true,
+            "geometry": true,
+            "filter_set": true,
             "sigma_low": true,
             "sigma_high": true,
             "gain": true,
@@ -3064,43 +3158,45 @@
           "matches_saved_refinement_trial": true
         },
         {
-          "label": "Refined geometry / selected filters",
-          "geometry": "refined",
+          "label": "Common eyes (selected) / selected filters",
+          "geometry": "common",
           "filter_set": "selected",
-          "sigma_low": 10,
+          "sigma_low": 8,
           "sigma_high": 3,
           "gain": 1.25,
           "low_target_points": [
             [
-              194,
-              210
+              186,
+              235
             ],
             [
-              306,
-              210
+              326,
+              235
             ]
           ],
           "low_matrix": [
             [
-              2.544140423335054,
-              0.05782137325761487,
-              -328.30046463603514
+              0.9984607491021037,
+              -0.09338122113904568,
+              -81.4150846587994
             ],
             [
-              -0.05782137325761487,
-              2.544140423335054,
-              -35.22044398554465
+              0.09338122113904568,
+              0.9984607491021037,
+              -136.48486403283738
             ]
           ],
-          "clip_fraction": 0.014881134033203125,
+          "clip_fraction": 0.012104034423828125,
           "range": [
-            -0.34374764412556025,
-            1.4085255184484415
+            -0.17654758901793866,
+            1.3631128870279094
           ],
-          "high_to_low_contrast_ratio_512": 0.19676611742028566,
-          "high_to_low_contrast_ratio_128": 0.11356871999888486,
+          "high_to_low_contrast_ratio_512": 0.3033108656974054,
+          "high_to_low_contrast_ratio_128": 0.1817746336682892,
           "saved_checks": {
             "label": true,
+            "geometry": true,
+            "filter_set": true,
             "sigma_low": true,
             "sigma_high": true,
             "gain": true,
@@ -3434,7 +3530,7 @@
       },
       {
         "id": "custom_landscape",
-        "title": "Mountain-sky blending",
+        "title": "Sandstone arch and alpine lake",
         "width": 512,
         "height": 512,
         "registration": {
@@ -3443,61 +3539,61 @@
         },
         "a_matrix": [
           [
-            0.26666666666666666,
+            0.14814814814814814,
             -0.0,
-            -85.33333333333333
+            -128.0
           ],
           [
             0.0,
-            0.26666666666666666,
+            0.14814814814814814,
             0.0
           ]
         ],
         "b_matrix": [
           [
-            0.2048,
+            0.20545746388443017,
             -0.0,
-            -512.0
+            -125.9454253611557
           ],
           [
             0.0,
-            0.2048,
-            -81.92
+            0.20545746388443017,
+            0.0
           ]
         ],
-        "bands": 5,
+        "bands": 4,
         "base_sigma": 2,
-        "initial_mask_sigma": 2.0,
-        "coarse_image_sigma": 32,
-        "coarse_mask_nominal_equivalent_sigma": 32.0624390837628,
+        "initial_mask_sigma": 1.0,
+        "coarse_image_sigma": 16,
+        "coarse_mask_nominal_equivalent_sigma": 16.0312195418814,
         "mask_kind": "polygon",
-        "binary_mask_area_pixels": 188220,
+        "binary_mask_area_pixels": 123434,
         "methods": {
           "hard_cut": {
-            "boundary_jump": 0.23658243437526527,
-            "clip_fraction": 2.5431315104166665e-06,
-            "clip_fraction_tolerance_1e6": 2.5431315104166665e-06,
+            "boundary_jump": 0.27515806536699544,
+            "clip_fraction": 0.0,
+            "clip_fraction_tolerance_1e6": 0.0,
             "range": [
               0.0,
-              1.0679718137254903
+              1.0
             ]
           },
           "feather": {
-            "boundary_jump": 0.0266426185802462,
-            "clip_fraction": 0.0019683837890625,
+            "boundary_jump": 0.15718347008474876,
+            "clip_fraction": 0.0,
             "clip_fraction_tolerance_1e6": 0.0,
             "range": [
-              -3.7306432453058674e-16,
-              0.9999998235593169
+              0.0,
+              1.0
             ]
           },
           "multiscale": {
-            "boundary_jump": 0.030626520058734945,
-            "clip_fraction": 0.00197601318359375,
-            "clip_fraction_tolerance_1e6": 1.0172526041666666e-05,
+            "boundary_jump": 0.16690150114378513,
+            "clip_fraction": 0.0013415018717447917,
+            "clip_fraction_tolerance_1e6": 0.0012575785319010417,
             "range": [
-              -0.00015248506428177516,
-              1.02041466534598
+              -0.2396433526864842,
+              1.0377849816262776
             ]
           }
         },
@@ -3510,120 +3606,8 @@
           "multiscale_range": true,
           "decomposition_error": true,
           "a_matrix": true,
-          "b_matrix": true,
-          "photometric_b_gain_rgb": true,
-          "photometric_domain": true,
-          "photometric_intermediate_clipping": true,
-          "photometric_b_range_before_gain": true,
-          "photometric_b_range_after_gain": true,
-          "photometric_b_out_of_display_count": true,
-          "photometric_b_out_of_display_fraction": true,
-          "lighting_refinement_0_b_points": true,
-          "lighting_refinement_0_b_gain_rgb": true,
-          "lighting_refinement_0_boundary_jump": true,
-          "lighting_refinement_0_clip_fraction": true,
-          "lighting_refinement_0_range": true,
-          "lighting_refinement_1_b_points": true,
-          "lighting_refinement_1_b_gain_rgb": true,
-          "lighting_refinement_1_boundary_jump": true,
-          "lighting_refinement_1_clip_fraction": true,
-          "lighting_refinement_1_range": true,
-          "lighting_refinement_2_b_points": true,
-          "lighting_refinement_2_b_gain_rgb": true,
-          "lighting_refinement_2_boundary_jump": true,
-          "lighting_refinement_2_clip_fraction": true,
-          "lighting_refinement_2_range": true
-        },
-        "photometric_diagnostics": {
-          "b_gain_rgb": [
-            1.12,
-            1.1,
-            0.96
-          ],
-          "domain": "stored RGB; spatially uniform multiplication after framing",
-          "intermediate_clipping": false,
-          "b_range_before_gain": [
-            0.06089154411764706,
-            0.9535462622549019
-          ],
-          "b_range_after_gain": [
-            0.06698069852941177,
-            1.0679718137254903
-          ],
-          "b_out_of_display_count": 2,
-          "b_out_of_display_fraction": 2.5431315104166665e-06
-        },
-        "lighting_refinement_trials": [
-          {
-            "b_points": [
-              [
-                700,
-                0
-              ],
-              [
-                3550,
-                0
-              ]
-            ],
-            "b_gain_rgb": [
-              1,
-              1,
-              1
-            ],
-            "boundary_jump": 0.030571271624323583,
-            "clip_fraction": 0.0019849141438802085,
-            "range": [
-              -6.605273107761323e-05,
-              1.0174669450541953
-            ]
-          },
-          {
-            "b_points": [
-              [
-                2500,
-                400
-              ],
-              [
-                5000,
-                400
-              ]
-            ],
-            "b_gain_rgb": [
-              1,
-              1,
-              1
-            ],
-            "boundary_jump": 0.03054580178630116,
-            "clip_fraction": 0.0019709269205729165,
-            "range": [
-              -0.00010141016253123968,
-              0.9999999465029058
-            ]
-          },
-          {
-            "b_points": [
-              [
-                2500,
-                400
-              ],
-              [
-                5000,
-                400
-              ]
-            ],
-            "b_gain_rgb": [
-              1.12,
-              1.1,
-              0.96
-            ],
-            "boundary_jump": 0.030626520058734945,
-            "clip_fraction": 0.00197601318359375,
-            "range": [
-              -0.00015248506428177516,
-              1.02041466534598
-            ]
-          }
-        ]
+          "b_matrix": true
+        }
       },
       {
         "id": "custom_planet",

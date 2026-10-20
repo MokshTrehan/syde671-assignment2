@@ -151,7 +151,7 @@
       "mode": "RGB",
       "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
       "provenance": "Original sample file mirrored by ImageIO; provenance and license documented by scikit-image.",
-      "role": "Custom hybrid"
+      "role": "Retained original from earlier experiments; not used in the final report"
     },
     {
       "file": "custom/chelsea.png",
@@ -249,7 +249,7 @@
       "width": 2687,
       "height": 3356,
       "mode": "RGB",
-      "role": "Custom hybrid: low-frequency source for Obama + Einstein"
+      "role": "Custom hybrid: low-frequency source for Obama + Biden"
     },
     {
       "file": "custom/tabby.jpg",
@@ -282,7 +282,7 @@
       "width": 1800,
       "height": 2700,
       "mode": "RGB",
-      "role": "Custom hybrid: high-frequency source for astronaut + portrait cat",
+      "role": "Retained original from earlier experiments; not used in the final report",
       "provenance": "Downloaded from the photo linked on the credited Unsplash page, resized to 1800 px width by its image service. Full composition retained; further alignment/filtering occurs in the assignment pipeline."
     },
     {
@@ -300,7 +300,7 @@
       "mode": "L",
       "license_url": "https://commons.wikimedia.org/wiki/File:Albert_Einstein_1947.jpg",
       "provenance": "Downloaded unchanged from the Wikimedia Commons reproduction of Library of Congress item 2004671908 (cph.3b46036). The source record lists no copyright renewal; the download bytes are preserved. The Commons page also lists public-domain status in Canada.",
-      "role": "Custom hybrid: high-frequency source for Obama + Einstein"
+      "role": "High-frequency source in the classic Monroe/Einstein hybrid"
     },
     {
       "file": "custom/rainier.jpg",
@@ -316,7 +316,7 @@
       "height": 1920,
       "mode": "RGB",
       "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then blends Gaussian/Laplacian bands; no exposure/color edits, local retouching, or source precomposition.",
-      "role": "Custom multiresolution blend: Mount Rainier terrain and Denali sunset sky"
+      "role": "Retained original from earlier experiments; not used in the final report"
     },
     {
       "file": "custom/alpenglow.jpg",
@@ -332,7 +332,111 @@
       "height": 3636,
       "mode": "RGB",
       "provenance": "Original downloaded bytes unchanged. Processing uniformly scales and crops the image, then multiplies stored RGB values by global gains (1.12, 1.10, 0.96) before Gaussian/Laplacian blending. Floating-point values are retained without intermediate clipping. There is no local retouching or source precomposition.",
-      "role": "Custom multiresolution blend: Mount Rainier terrain and Denali sunset sky"
+      "role": "Retained original from earlier experiments; not used in the final report"
+    },
+    {
+      "file": "custom/biden.jpg",
+      "title": "Joe Biden official presidential portrait, 2021",
+      "creator": "Adam Schultz / White House",
+      "license": "Public domain (U.S. government work)",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Joe_Biden_presidential_portrait.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Joe_Biden_presidential_portrait.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "563f24c3a1a7392bb7f96831ba0ee8e7d53755ac9c053e9eeb520530542cc051",
+      "bytes": 4574031,
+      "width": 2400,
+      "height": 3000,
+      "mode": "RGB",
+      "license_url": "https://commons.wikimedia.org/wiki/File:Joe_Biden_presidential_portrait.jpg",
+      "provenance": "Original bytes preserved. Figures apply eye-landmark similarity alignment, luminance conversion and Gaussian filtering.",
+      "role": "Custom hybrid: high-frequency source for Obama + Biden"
+    },
+    {
+      "file": "custom/collins.jpg",
+      "title": "Michael Collins NASA portrait (S69-31742)",
+      "creator": "NASA",
+      "license": "Public domain (NASA)",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Michael_Collins_(S69-31742).jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Michael_Collins_%28S69-31742%29.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "c030adf88291f8035c848eecbe3bf9af903bec9de2e1925f92ba918d3d818026",
+      "bytes": 5464797,
+      "width": 6461,
+      "height": 8076,
+      "mode": "RGB",
+      "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "provenance": "Original bytes preserved; figures apply eye-landmark similarity alignment, luminance conversion, Gaussian filtering and hybrid summation.",
+      "role": "Retained original from earlier experiments; not used in the final report"
+    },
+    {
+      "file": "custom/garriott.jpg",
+      "title": "Owen Garriott NASA portrait, 1971",
+      "creator": "NASA",
+      "license": "Public domain (NASA)",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Owen_Garriott.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Owen_Garriott.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "7ebc0f1950a1cb8cab8ebe538ed2d692a62b963fd706bf32cbfc286b209710f5",
+      "bytes": 1322653,
+      "width": 3280,
+      "height": 4100,
+      "mode": "RGB",
+      "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "provenance": "Original bytes preserved; figures apply eye-landmark similarity alignment, luminance conversion, Gaussian filtering and hybrid summation.",
+      "role": "Retained original from earlier experiments; not used in the final report"
+    },
+    {
+      "file": "custom/north_window_arch.jpg",
+      "title": "Turret Arch through North Window (crop)",
+      "creator": "Thomas Wolf, www.foto-tw.de",
+      "license": "CC BY-SA 3.0",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Turret_Arch_through_North_Window_(crop).jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Turret_Arch_through_North_Window_%28crop%29.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "a9594595a4143225bd4fc51c13c37be8562e49a40905d4b98043c461e074b061",
+      "bytes": 9081485,
+      "width": 3718,
+      "height": 2492,
+      "mode": "RGB",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "provenance": "Author-provided cropped panorama; Commons records that its original panorama was stitched by the photographer. Input file is preserved unmodified. Derived assignment figures require attribution and share-alike licensing. Assignment processing uniformly frames each input and blends Gaussian/Laplacian bands. Original bytes are unchanged; no color correction, local retouching, or prior background transfer is used.",
+      "role": "Custom irregular-mask blend: sandstone arch and alpine lake",
+      "derivative_credit": "Arch photograph: Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0; lake photograph: David Restivo / NPS, CC BY 2.0. Cropped, resized and composited. Arch-lake composite figures are distributed under CC BY-SA 3.0."
+    },
+    {
+      "file": "custom/lake_mcdonald_alpenglow.jpg",
+      "title": "Alpenglow on Lake McDonald",
+      "creator": "David Restivo / NPS (GlacierNPS)",
+      "license": "CC BY 2.0",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Alpenglow_on_Lake_McDonald_(5431843846).jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/86/Alpenglow_on_Lake_McDonald_%285431843846%29.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "bc74841d8f15e853cac958abddf73049f156878a1cd6d6d20645d604d9653ec9",
+      "bytes": 9138922,
+      "width": 5184,
+      "height": 3456,
+      "mode": "RGB",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provenance": "Commons licensing reviewed from GlacierNPS Flickr. Depicts warm sunset light on snowy peaks above a partially frozen lake. Assignment processing uniformly frames each input and blends Gaussian/Laplacian bands. Original bytes are unchanged; no color correction, local retouching, or prior background transfer is used.",
+      "role": "Custom irregular-mask blend: sandstone arch and alpine lake",
+      "derivative_credit": "Arch photograph: Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0; lake photograph: David Restivo / NPS, CC BY 2.0. Cropped, resized and composited. Arch-lake composite figures are distributed under CC BY-SA 3.0."
+    },
+    {
+      "file": "custom/monroe.jpg",
+      "title": "Marilyn Monroe in Niagara (1953 publicity portrait)",
+      "creator": "Gene Kornman / 20th Century Fox",
+      "license": "Public domain in the United States (copyright not renewed).",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Monroe_in_Niagara_%281953_publicity_photo%29.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Monroe_in_Niagara_%281953_publicity_photo%29.jpg",
+      "acquired_on": "2026-10-19",
+      "sha256": "21868282d29eda661089f67bb1b49afc90c4b3895e1f6d647f19cbf0e909e7c3",
+      "bytes": 34793,
+      "width": 523,
+      "height": 700,
+      "mode": "RGB",
+      "license_url": "https://commons.wikimedia.org/wiki/File:Monroe_in_Niagara_%281953_publicity_photo%29.jpg",
+      "provenance": "Downloaded original Wikimedia Commons file without modification; the source record identifies Gene Kornman and US public-domain status through nonrenewal. No worldwide public-domain claim is made. This is a separate portrait source, not an existing hybrid.",
+      "role": "Low-frequency source in the classic Monroe/Einstein hybrid"
     }
   ],
   "other_files": {
