@@ -300,7 +300,8 @@
       "mode": "L",
       "license_url": "https://commons.wikimedia.org/wiki/File:Albert_Einstein_1947.jpg",
       "provenance": "Downloaded unchanged from the Wikimedia Commons reproduction of Library of Congress item 2004671908 (cph.3b46036). The source record lists no copyright renewal; the download bytes are preserved. The Commons page also lists public-domain status in Canada.",
-      "role": "High-frequency source in the classic Monroe/Einstein hybrid"
+      "role": "High-frequency source in the classic Monroe/Einstein hybrid",
+      "processing": "The hybrid uses a horizontal reflection composed with eye-based similarity alignment; the supplied original file and its checksum remain unchanged."
     },
     {
       "file": "custom/rainier.jpg",
